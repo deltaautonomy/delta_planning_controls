@@ -7,7 +7,11 @@ project(delta_planning_controls)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED COMPONENTS
+   roscpp
+   rospy
+   dynamic_reconfigure
+   visualization_msgs)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -84,10 +88,9 @@ find_package(catkin REQUIRED)
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
+generate_dynamic_reconfigure_options(
+  cfg/PIDReconfigure.cfg
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -125,6 +128,7 @@ include_directories(
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
 # add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#add_dependencies(example_node ${PROJECT_NAME}_gencfg)
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
