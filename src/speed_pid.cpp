@@ -48,7 +48,7 @@ if (control > 0) {
 
 return make_pair(throttle, brake);
 
-double SpeedPID::updateError(double desired_speed, double current_speed)
+pair<double, double> SpeedPID::updateError(double desired_speed, double current_speed)
 {
     double error = desired_speed - current_speed;
     _integral_error += error * dt;

@@ -27,7 +27,7 @@ public:
 
     SpeedPID(double kp, double kd, double ki, double dt, double max, double min);
 
-    double updateError(double desired_speed, double current_speed);
+    std::pair<double, double> updateError(double desired_speed, double current_speed);
 };
 
 #endif /* _SPEED_PID_H_ */

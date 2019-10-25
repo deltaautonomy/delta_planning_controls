@@ -1,9 +1,6 @@
 #ifndef _STANLEY_CONTROLLER_H_
 #define _STANLEY_CONTROLLER_H_
 
-#include <cmath>
-#include <iostream>
-
 class StanleyController {
 
 private:
@@ -16,15 +13,12 @@ private:
     double _K1;
     double _K2;
 
-    // Error
-    double _error;
-
 public:
     StanleyController();
 
-    StanleyController(double k1, double k2);
+    StanleyController(double k1, double k2, double dt, double max, double min);
 
-    void update_error();
+    void update_error(double orientation_error, double cross_track_error, double longitudinal_velocity);
 };
 
 #endif /* _STEER_PID_H_ */
