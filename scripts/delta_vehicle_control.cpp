@@ -1,4 +1,9 @@
-
+/*=================================================================
+ *
+ * Delta Vehicle Control.cpp
+ * author: Prateek Parmeshwar
+ *
+ *=================================================================*/
 #include "delta_vehicle_control.h"
 #include <iostream>
 #include <eigen3/Eigen/Dense>
