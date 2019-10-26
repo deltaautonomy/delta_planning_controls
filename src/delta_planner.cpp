@@ -21,6 +21,14 @@ DeltaPlanner::DeltaPlanner(std::string name)
     _private_nh.param("brake_min", _brake_min, -1.0);
     _private_nh.param("throttle_max", _throttle_max, 1.0);
     _private_nh.param("throttle_min", _throttle_min, 0.0);
+    // Change 1
+    _private_nh.param("control_frequency", _ctrl_freq, 20.0);
+    _private_nh.param("max_acceleration_x", _max_acceleration_x, 4.0);
+    _private_nh.param("max_decceleration_x", _min_acceleration_x, 7.0);
+    _private_nh.param("max_acceleration_y", _max_acceleration_y, 2.0);
+    _private_nh.param("max_decceleration_y", _min_acceleration_y, 3.0);
+
+
 
     _ego_state = VehicleState();
 

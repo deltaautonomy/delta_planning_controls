@@ -19,18 +19,25 @@ QuinticPolynomialGeneration::QuinticPolynomialGeneration()
 {
 }
 
-QuinticPolynomialGeneration::QuinticPolynomialGeneration(double ctrl_freq, double planning_time)
+QuinticPolynomialGeneration::QuinticPolynomialGeneration(double ctrl_freq, double max_acc_x, min_acc_x)
 {
     m_ctrl_freq = ctrl_freq;
-    m_planning_time = planning_time;
+    // Change 3
+    m_max_acceleration_x = max_acc_x;
+    m_min_acceleration_x = min_acc_x;
 }
 // Define member functions
 double QuinticPolynomialGeneration::getCtrlFreq() { return m_ctrl_freq; } // Getter for control freq
-double QuinticPolynomialGeneration::getPlanningTime() { return m_planning_time; } // Getter for planning time
 
 void QuinticPolynomialGeneration::setCtrlFreq(double new_ctrl_freq) { m_ctrl_freq = new_ctrl_freq; } // Setter for control freq
-void QuinticPolynomialGeneration::setPlanningTime(double new_planning_time) { m_planning_time = new_planning_time; } //Setter for planning time
 
+double QuinticPolynomialGeneration::getMaxPlanningTime(double curr_velocity_x)
+{
+    double planning_time = curr_velocity_x/m_min_acceleration_x; // v=a*t a--> max deceleration
+    return planning_time;
+}
+
+double 
 // Member function for generating evasive trajectory
 MatrixXd QuinticPolynomialGeneration::getPolynomialCoefficients(vector<double> boundary_vals)
 {

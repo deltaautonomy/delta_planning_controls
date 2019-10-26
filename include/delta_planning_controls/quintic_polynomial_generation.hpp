@@ -20,7 +20,9 @@ class QuinticPolynomialGeneration {
     // Define member variables
 private:
     double m_ctrl_freq; // Controller frequency
-    double m_planning_time; // Time in which the trajectory is executed
+    // Change 2
+    double m_max_acceleration_x; // Max longitudinal acceleration
+    double m_min_acceleration_x; // Max longitudinal deceleration 
 
 public:
     QuinticPolynomialGeneration();
