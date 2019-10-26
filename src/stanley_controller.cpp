@@ -1,7 +1,7 @@
 #include <cmath>
 #include <iostream>
 
-#include <delta_planning_controls/StanleyController.hpp>
+#include <delta_planning_controls/stanley_controller.hpp>
 
 using namespace std;
 
@@ -15,17 +15,17 @@ StanleyController::StanleyController()
 }
 
 StanleyController::StanleyController(double k1, double k2, double dt, double max, double min)
+    : _K1(k1)
+    , _K2(k2)
+    , _dt(dt)
+    , _max(max)
+    , _min(min)
 {
-    _K1(k1);
-    _K2(k2);
-    _dt(dt);
-    _max(max;
-    _min(min);
 }
 
 double StanleyController::updateError(double orientation_error, double cross_track_error, double longitudinal_velocity)
 {
-    double output = _K1 * orientation_error + tan(_K2 * cross_track_error / current_speed);
+    double output = _K1 * orientation_error + tan(_K2 * cross_track_error / longitudinal_velocity);
 
     if (output > _max)
         output = _max;

@@ -7,26 +7,28 @@
 #ifndef DELTA_VEHICLE_CONTROL_H
 #define DELTA_VEHICLE_CONTROL_H
 
-#include <iostream>
 #include <eigen3/Eigen/Dense>
+#include <iostream>
 #include <math.h>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
+
 using namespace std;
 
-class VehicleControl
-{
+class QuinticPolynomialGeneration {
     // Define member variables
-    private:
-        double m_ctrl_freq; // Controller frequency
-        double m_planning_time; // Time in which the trajectory is executed
+private:
+    double m_ctrl_freq; // Controller frequency
+    double m_planning_time; // Time in which the trajectory is executed
 
-    public:
-    VehicleControl(double ctrl_freq, double planning_time);
+public:
+    QuinticPolynomialGeneration();
+
+    QuinticPolynomialGeneration(double ctrl_freq, double planning_time);
+
     // Define member functions
-
-    double getCtrlFreq();  // Getter for control freq
+    double getCtrlFreq(); // Getter for control freq
     double getPlanningTime(); // Getter for planning time
 
     void setCtrlFreq(double new_ctrl_freq); // Setter for control freq

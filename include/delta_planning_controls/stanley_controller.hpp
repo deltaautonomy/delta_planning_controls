@@ -18,7 +18,7 @@ public:
 
     StanleyController(double k1, double k2, double dt, double max, double min);
 
-    void update_error(double orientation_error, double cross_track_error, double longitudinal_velocity);
+    double updateError(double orientation_error, double cross_track_error, double longitudinal_velocity);
 };
 
-#endif /* _STEER_PID_H_ */
+#endif /* _STANLEY_CONTROLLER_H_ */

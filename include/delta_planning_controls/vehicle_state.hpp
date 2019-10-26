@@ -11,12 +11,12 @@ struct VehicleState {
     double vy;
     double yaw_rate;
 
-    double get_distance(double pos_x, double pos_y)
+    double getDistance(double pos_x, double pos_y)
     {
         return sqrt(pow((pos_x - x), 2) + pow((pos_y - y), 2));
     }
 
-    double get_velocity()
+    double getVelocity()
     {
         return sqrt(pow(vx, 2) + pow(vy, 2));
     }

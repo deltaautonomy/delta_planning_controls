@@ -1,0 +1,21 @@
+Controller:
+  dt: 0
+
+  speed_kp: 0
+  speed_ki: 0
+  speed_kd: 0
+
+  steer_k1: 0
+  steer_k2: 0
+
+  steer_max: 1
+  steer_min: -1
+
+  brake_max: 1
+  brake_min: -1
+
+  throttle_max: 1
+  throttle_min: -1
+
+Planner:
+  some_param: 0.1
