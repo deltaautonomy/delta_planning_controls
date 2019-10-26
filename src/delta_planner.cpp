@@ -43,8 +43,11 @@ void DeltaPlanner::run()
 {
     if(!_plan_initialized) {
         // call the planner
-        // _controller.setPlan(plan)
+        // _planner.getEvasiveTrajectory(_ego_state, )
+        //_controller.setPlan(plan)
+        _plan_initialized = true;
     }
+    cout<<_speed_kp;
     VehicleControl control = _controller.runStep(_ego_state);
 
     publishControl(control);
@@ -73,11 +76,6 @@ void DeltaPlanner::egoStateCB(const delta_prediction::EgoStateEstimate::ConstPtr
     _ego_state.yaw_rate = msg->twist.angular.y;
 }
 
-// void DeltaPlanner::cfgCB(delta_planning_controls::PIDReconfigureConfig &config, uint32_t level)
-// {
-//     _dt = config.dt;
-// }
-
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "delta_planning_controls_node");
@@ -89,11 +87,22 @@ int main(int argc, char** argv)
 
     planner_obj.control_pub = nh.advertise<carla_msgs::CarlaEgoVehicleControl>("/delta/planning/controls", 1);
 
+    ros::Rate r(10); // 10 hz
+    while (ros::ok())
+    {   
+        planner_obj.run();
+        ros::spinOnce();
+        r.sleep();
+    }
+}
+
+// void DeltaPlanner::cfgCB(delta_planning_controls::PIDReconfigureConfig &config, uint32_t level)
+// {
+//     _dt = config.dt;
+// }
+
     // dynamic_reconfigure::Server<delta_planning_controls::PIDReconfigureConfig> server;
     // dynamic_reconfigure::Server<delta_planning_controls::PIDReconfigureConfig>::CallbackType f;
     // f = boost::bind(&DeltaPlanner::cfgCB, _1, _2);
 
     // server.setCallback(f);
-
-    ros::spin();
-}
