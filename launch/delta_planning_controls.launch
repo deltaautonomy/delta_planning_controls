@@ -1,0 +1,9 @@
+<launch>
+
+	<node pkg="delta_planning_controls" type="delta_planning_controls_node" name="delta_planning_controls" required="true">
+	    <rosparam file="$(find delta_planning_controls)/params/PID.yaml" command="load"/>
+
+	</node>
+
+  	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find delta_planning_controls)/planner.rviz" />
+</launch>
