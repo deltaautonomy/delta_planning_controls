@@ -10,6 +10,7 @@ class PIDController {
 private:
     int _current_path_idx;
     Eigen::MatrixXd _plan;
+    bool _valid_plan;
     int _plan_size;
     SpeedPID longitudinal_controller;
     StanleyController lateral_controller;
@@ -20,7 +21,9 @@ private:
 public:
     PIDController();
 
-    PIDController(Eigen::MatrixXd plan, double kp, double kd, double ki, double steer_max, double steer_min, double k1, double k2, double dt, double throttle_max, double brake_min);
+    PIDController(double kp, double kd, double ki, double steer_max, double steer_min, double k1, double k2, double dt, double throttle_max, double brake_min);
+
+    void setPlan(Eigen::MatrixXd plan);
 
     VehicleControl runStep(VehicleState ego_state);
 };

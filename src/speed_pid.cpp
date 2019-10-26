@@ -17,13 +17,7 @@ SpeedPID::SpeedPID()
     _integral_error = 0;
 }
 
-SpeedPID::SpeedPID(double kp, double kd, double ki, double dt, double max, double min)
-    : _Kp(kp)
-    , _Kd(kd)
-    , _Ki(ki)
-    , _dt(dt)
-    , _max(max)
-    , _min(min)
+SpeedPID::SpeedPID(double kp, double kd, double ki, double dt, double max, double min) : _Kp(kp), _Kd(kd), _Ki(ki), _dt(dt), _max(max), _min(min)
 {
     // @TODO: Handle max min random values
     _last_error = 0;

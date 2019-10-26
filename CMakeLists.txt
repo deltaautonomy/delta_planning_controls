@@ -10,6 +10,7 @@ add_compile_options(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
    roscpp
    rospy
+   carla_msgs
    dynamic_reconfigure
    visualization_msgs)
 

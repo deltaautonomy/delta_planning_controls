@@ -6,33 +6,44 @@
 PIDController::PIDController()
 {
     _plan_size = 0;
+    _valid_plan = false;
 }
 
-PIDController::PIDController(Eigen::MatrixXd plan, double kp, double kd, double ki, double steer_max,
+PIDController::PIDController(double kp, double kd, double ki, double steer_max,
     double steer_min, double k1, double k2, double dt, double throttle_max, double brake_min)
 {
-    _plan = plan;
-    _plan_size = _plan.size();
+    _plan_size = 0;
     lateral_controller = StanleyController(k1, k2, dt, steer_max, steer_min);
     longitudinal_controller = SpeedPID(kp, ki, kd, dt, throttle_max, brake_min);
 }
 
-VehicleControl PIDController::runStep(VehicleState ego_state)
+void PIDController::setPlan(Eigen::MatrixXd plan)
 {
-    int idx = _findClosestWaypoint(ego_state);
-    double distance = ego_state.getDistance(_plan(idx, 0), _plan(idx, 1));
-    double slope = _findPathSlope(idx);
-    double desired_speed = sqrt(pow(_plan(idx, 2), 2) + pow(_plan(idx, 3), 2));
+    _plan = plan;
+    _valid_plan = true;
+    _plan_size = _plan.size();
+}
 
-    double ego_speed = ego_state.getVelocity();
-    double ego_orientation = ego_state.yaw;
-    double ego_vx = ego_state.vx;
+VehicleControl PIDController::runStep(VehicleState ego_state)
+{   VehicleControl ctrl;
+    if (_valid_plan == true) {
+        int idx = _findClosestWaypoint(ego_state);
+        double distance = ego_state.getDistance(_plan(idx, 0), _plan(idx, 1));
+        double slope = _findPathSlope(idx);
+        double desired_speed = sqrt(pow(_plan(idx, 2), 2) + pow(_plan(idx, 3), 2));
 
-    // get controls
-    std::pair<double, double> speed_control = longitudinal_controller.updateError(desired_speed, ego_speed);
-    double steering_control = lateral_controller.updateError(slope - ego_orientation, distance, ego_vx);
+        double ego_speed = ego_state.getVelocity();
+        double ego_orientation = ego_state.yaw;
+        double ego_vx = ego_state.vx;
 
-    VehicleControl ctrl = { steering_control, speed_control.first, speed_control.second };
+        // get controls
+        std::pair<double, double> speed_control = longitudinal_controller.updateError(desired_speed, ego_speed);
+        double steering_control = lateral_controller.updateError(slope - ego_orientation, distance, ego_vx);
+
+        VehicleControl ctrl = { steering_control, speed_control.first, speed_control.second };
+    } else {
+        VehicleControl ctrl = {0, 0, 0};
+    }
 
     return ctrl;
 }
@@ -56,10 +67,13 @@ double PIDController::_findPathSlope(int idx)
 {
     double slope;
     if ((idx > 0) && (idx < _plan_size - 1))
+        // If the idx corresponds to an internal point on the plan
         slope = (_plan(idx + 1, 1) - _plan(idx - 1, 1)) / (_plan(idx + 1, 0) - _plan(idx - 1, 0));
     else if (idx > 0)
+        // If the idx corresponds to the last point on the plan
         slope = (_plan(idx, 1) - _plan(idx - 1, 1)) / (_plan(idx, 0) - _plan(idx - 1, 0));
     else
+        // If the idx corresponds to the first point on the plan
         slope = (_plan(idx + 1, 1) - _plan(idx, 1)) / (_plan(idx + 1, 0) - _plan(idx, 0));
 
     return slope;

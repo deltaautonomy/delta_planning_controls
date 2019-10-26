@@ -28,15 +28,24 @@ private:
     double _speed_kd;
     double _steer_k1;
     double _steer_k2;
+
     VehicleState _ego_state;
+    ros::Time _stamp;
+
+    bool _plan_initialized;
 
     QuinticPolynomialGeneration _planner;
     PIDController _controller;
 
 public:
+    ros::Publisher control_pub;
+
     DeltaPlanner(std::string name);
 
     // void cfgCB(delta_planning_controls::PIDReconfigureConfig &config, uint32_t level);
+    void publishControl(VehicleControl control);
+
+    void run();
 
     void egoStateCB(const delta_prediction::EgoStateEstimate::ConstPtr& msg);
 };

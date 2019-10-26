@@ -1,4 +1,6 @@
 #include <delta_planning_controls/delta_planner.hpp>
+#include <carla_msgs/CarlaEgoVehicleControl.h>
+#include <tf/tf.h>
 #include <iostream>
 
 DeltaPlanner::DeltaPlanner(std::string name)
@@ -22,16 +24,50 @@ DeltaPlanner::DeltaPlanner(std::string name)
 
     _ego_state = VehicleState();
 
-    // TODO(prateek): add your part
     _planner = QuinticPolynomialGeneration(0.1, 1.0);
-    // _controller =
+    _plan_initialized = false;
+    _controller = PIDController(_speed_kp, _speed_kd, _speed_ki, _steer_max, _steer_min, _steer_k1, _steer_k2, _dt, _throttle_max, _brake_min);
+}
+
+void DeltaPlanner::publishControl(VehicleControl control)
+{
+    carla_msgs::CarlaEgoVehicleControl msg;
+    msg.header.stamp = _stamp;
+    msg.steer = control.steer;
+    msg.brake = control.brake;
+    msg.throttle = control.throttle;
+    control_pub.publish(msg);
+}
+
+void DeltaPlanner::run()
+{
+    if(!_plan_initialized) {
+        // call the planner
+        // _controller.setPlan(plan)
+    }
+    VehicleControl control = _controller.runStep(_ego_state);
+
+    publishControl(control);
+
 }
 
 void DeltaPlanner::egoStateCB(const delta_prediction::EgoStateEstimate::ConstPtr& msg)
 {
+    _stamp = msg->header.stamp;
+
     _ego_state.x = msg->pose.position.x;
-    _ego_state.x = msg->pose.position.x;
-    _ego_state.yaw = msg->pose.orientation.z; //wrong
+    _ego_state.y = msg->pose.position.y;
+
+    tf::Quaternion q(
+        msg->pose.orientation.x,
+        msg->pose.orientation.y,
+        msg->pose.orientation.z,
+        msg->pose.orientation.w);
+    tf::Matrix3x3 m(q);
+    double roll, pitch, yaw;
+    m.getRPY(roll, pitch, yaw);
+
+    _ego_state.yaw = yaw; //wrong
     _ego_state.vx = msg->twist.linear.x;
     _ego_state.vy = msg->twist.linear.y;
     _ego_state.yaw_rate = msg->twist.angular.y;
@@ -51,7 +87,7 @@ int main(int argc, char** argv)
 
     ros::Subscriber ego_state_sub = nh.subscribe<delta_prediction::EgoStateEstimate>("/delta/prediction/ego_vehicle/state", 10, &DeltaPlanner::egoStateCB, &planner_obj);
 
-    ros::Publisher control_pub = nh.advertise<carla_msgs::CarlaEgoVehicleControl>("/delta/planning/controls", 1);
+    planner_obj.control_pub = nh.advertise<carla_msgs::CarlaEgoVehicleControl>("/delta/planning/controls", 1);
 
     // dynamic_reconfigure::Server<delta_planning_controls::PIDReconfigureConfig> server;
     // dynamic_reconfigure::Server<delta_planning_controls::PIDReconfigureConfig>::CallbackType f;
