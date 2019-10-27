@@ -10,6 +10,8 @@ struct VehicleState {
     double vx;
     double vy;
     double yaw_rate;
+    double acc_x;
+    double acc_y;
 
     double getDistance(double pos_x, double pos_y)
     {

@@ -31,44 +31,53 @@ double QuinticPolynomialGeneration::getCtrlFreq() { return m_ctrl_freq; } // Get
 
 void QuinticPolynomialGeneration::setCtrlFreq(double new_ctrl_freq) { m_ctrl_freq = new_ctrl_freq; } // Setter for control freq
 
-double QuinticPolynomialGeneration::getMaxPlanningTime(double curr_velocity_x)
+// Change 4
+double QuinticPolynomialGeneration::getMaxPlanningTime()
 {
-    double planning_time = curr_velocity_x/m_min_acceleration_x; // v=a*t a--> max deceleration
+    double planning_time = _ego_state.vx/m_min_acceleration_x; // v=a*t a--> max deceleration
     return planning_time;
 }
 
-double 
+// Change 5
+double QuinticPolynomialGeneration::getFinalPoseX()
+{
+    double t = getMaxPlanningTime();
+    double xf = _ego_state.vx*t - 0.5*m_min_acceleration_x*t*t; + _ego_state.x
+    return xf;
+}
 // Member function for generating evasive trajectory
-MatrixXd QuinticPolynomialGeneration::getPolynomialCoefficients(vector<double> boundary_vals)
+MatrixXd QuinticPolynomialGeneration::getPolynomialCoefficients()
 {
     // Boundary vals is [xi,yi,xf,yf,vxi,vyi,axi,ayi]
     // minimum jerk trajectory is a 5th order polynomial
     // y = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5
     // Given initial and final values in pos, vel and acc (Note final acc is 0 and final vel is 0) coeffs are:
-    double T = m_planning_time;
+    double yf = 1;
+    double T = getMaxPlanningTime();
     MatrixXd coeffs(4, 6); // Matrix of coefficients
     // Populate matrix with coeffs for x in pos and vel
     // Position in x
-    coeffs(0, 0) = boundary_vals[0]; // a0x = xi
-    coeffs(0, 1) = boundary_vals[4]; // a1x = vxi
-    coeffs(0, 2) = boundary_vals[6] / 2; // a2x = axi/2
+    coeffs(0, 0) = _ego_state.x; // a0x = xi
+    coeffs(0, 1) = _ego_state.vx; // a1x = vxi
+    coeffs(0, 2) = _ego_state.acc_x/ 2; // a2x = axi/2
     // a3x = -(20*xi - 20*xf + 12*T*vxi + 11*axi*T**2 - 8*axi*T)/(2*T**3)
-    coeffs(0, 3) = -(20 * boundary_vals[0] - 20 * boundary_vals[2] + 12 * T * boundary_vals[4] + 11 * boundary_vals[6] * T * T - 8 * boundary_vals[6] * T) / (2 * pow(T, 3));
+    coeffs(0, 3) = -(20 * _ego_state.x - 20 * getFinalPoseX() + 12 * T * _ego_state.vx + 11 * _ego_state.acc_x * T * T - 8 * _ego_state.acc_x * T) / (2 * pow(T, 3));
     // a4x = (30*xi - 30*xf + 16*T*vxi + 17*axi*T**2 - 14*axi*T)/(2*T**4)
-    coeffs(0, 4) = (30 * boundary_vals[0] - 30 * boundary_vals[2] + 16 * T * boundary_vals[4] + 17 * boundary_vals[6] * T * T - 14 * boundary_vals[6] * T) / (2 * pow(T, 4));
+    coeffs(0, 4) = (30 * _ego_state.x - 30 * getFinalPoseX() + 16 * T * _ego_state.vx + 17 * _ego_state.acc_x * T * T - 14 * _ego_state.acc_x * T) / (2 * pow(T, 4));
     // a5x = -(12*xi - 12*xf + 6*T*vxi + 7*axi*T**2 - 6*axi*T)/(2*T**5)
-    coeffs(0, 5) = -(12 * boundary_vals[0] - 12 * boundary_vals[2] + 6 * T * boundary_vals[4] + 7 * boundary_vals[6] * T * T - 6 * boundary_vals[6] * T) / (2 * pow(T, 5));
+    coeffs(0, 5) = -(12 * _ego_state.x - 12 * getFinalPoseX() + 6 * T * _ego_state.vx + 7 * _ego_state.acc_x * T * T - 6 * _ego_state.acc_x * T) / (2 * pow(T, 5));
+    
+    
     // Position in y
-    // Position in x
-    coeffs(1, 0) = boundary_vals[1]; // a0y = yi
-    coeffs(1, 1) = boundary_vals[5]; // a1y = vyi
-    coeffs(1, 2) = boundary_vals[7] / 2; // a2y = ayi/2
+    coeffs(1, 0) = _ego_state.y; // a0y = yi
+    coeffs(1, 1) = _ego_state.vy; // a1y = vyi
+    coeffs(1, 2) = _ego_state.acc_y / 2; // a2y = ayi/2
     // a3y = -(20*yi - 20*yf + 12*T*vyi + 11*ayi*T**2 - 8*ayi*T)/(2*T**3)
-    coeffs(1, 3) = -(20 * boundary_vals[1] - 20 * boundary_vals[3] + 12 * T * boundary_vals[5] + 11 * boundary_vals[7] * T * T - 8 * boundary_vals[7] * T) / (2 * pow(T, 3));
+    coeffs(1, 3) = -(20 * _ego_state.y - 20 * yf + 12 * T * _ego_state.vy + 11 * _ego_state.acc_y * T * T - 8 * _ego_state.acc_y * T) / (2 * pow(T, 3));
     // a4y = (30*yi - 30*yf + 16*T*vyi + 17*ayi*T**2 - 14*ayi*T)/(2*T**4)
-    coeffs(1, 4) = (30 * boundary_vals[1] - 30 * boundary_vals[3] + 16 * T * boundary_vals[5] + 17 * boundary_vals[7] * T * T - 14 * boundary_vals[7] * T) / (2 * pow(T, 4));
+    coeffs(1, 4) = (30 * _ego_state.y - 30 * yf + 16 * T * _ego_state.vy + 17 * _ego_state.acc_y * T * T - 14 * _ego_state.acc_y * T) / (2 * pow(T, 4));
     // a5y = -(12*yi - 12*yf + 6*T*vyi + 7*ayi*T**2 - 6*ayi*T)/(2*T**5)
-    coeffs(1, 5) = -(12 * boundary_vals[1] - 12 * boundary_vals[3] + 6 * T * boundary_vals[5] + 7 * boundary_vals[7] * T * T - 6 * boundary_vals[7] * T) / (2 * pow(T, 5));
+    coeffs(1, 5) = -(12 * _ego_state.y - 12 * yf + 6 * T * _ego_state.vy + 7 * _ego_state.acc_y * T * T - 6 * _ego_state.acc_y * T) / (2 * pow(T, 5));
 
     // Velocity in x
     coeffs(2, 0) = coeffs(0, 1);
@@ -89,12 +98,12 @@ MatrixXd QuinticPolynomialGeneration::getPolynomialCoefficients(vector<double> b
     return coeffs;
 }
 
-MatrixXd QuinticPolynomialGeneration::getEvasiveTrajectory(vector<double> boundary_vals)
+MatrixXd QuinticPolynomialGeneration::getEvasiveTrajectory()
 {
-    MatrixXd coeffs = getPolynomialCoefficients(boundary_vals);
+    MatrixXd coeffs = getPolynomialCoefficients();
 
     double dt = 1 / m_ctrl_freq;
-    int num_steps = (int)m_planning_time * m_ctrl_freq;
+    int num_steps = (int)getMaxPlanningTime * m_ctrl_freq;
 
     MatrixXd reference_trajectory(num_steps, 4);
     for (int i = 0; i < num_steps; i++) {

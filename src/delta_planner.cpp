@@ -21,7 +21,7 @@ DeltaPlanner::DeltaPlanner(std::string name)
     _private_nh.param("brake_min", _brake_min, -1.0);
     _private_nh.param("throttle_max", _throttle_max, 1.0);
     _private_nh.param("throttle_min", _throttle_min, 0.0);
-    // Change 1
+
     _private_nh.param("control_frequency", _ctrl_freq, 20.0);
     _private_nh.param("max_acceleration_x", _max_acceleration_x, 4.0);
     _private_nh.param("max_decceleration_x", _min_acceleration_x, 7.0);
@@ -32,7 +32,7 @@ DeltaPlanner::DeltaPlanner(std::string name)
 
     _ego_state = VehicleState();
 
-    _planner = QuinticPolynomialGeneration(0.1, 1.0);
+    _planner = QuinticPolynomialGeneration(20.0, 3.0, 7.0);
     _plan_initialized = false;
     _controller = PIDController(_speed_kp, _speed_kd, _speed_ki, _steer_max, _steer_min, _steer_k1, _steer_k2, _dt, _throttle_max, _brake_min);
 }

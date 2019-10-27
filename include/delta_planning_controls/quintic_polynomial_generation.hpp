@@ -31,16 +31,16 @@ public:
 
     // Define member functions
     double getCtrlFreq(); // Getter for control freq
-    double getPlanningTime(); // Getter for planning time
+    double getMaxPlanningTime(); // Getter for planning time
+    double getFinalPoseX(); // Get final x position
 
     void setCtrlFreq(double new_ctrl_freq); // Setter for control freq
-    void setPlanningTime(double new_planning_time); //Setter for planning time
 
     // Member function for getting coefficients of 5th order polynomial
-    MatrixXd getPolynomialCoefficients(vector<double> boundary_vals);
+    MatrixXd getPolynomialCoefficients();
 
     // Member function to generate evasive trajectory
-    MatrixXd getEvasiveTrajectory(vector<double> boundary_vals);
+    MatrixXd getEvasiveTrajectory();
 };
 
 #endif
