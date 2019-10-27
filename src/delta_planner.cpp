@@ -51,7 +51,7 @@ void DeltaPlanner::run()
 {
     if(!_plan_initialized) {
         // call the planner
-        // _planner.getEvasiveTrajectory(_ego_state, )
+        _planner.getEvasiveTrajectory();
         //_controller.setPlan(plan)
         _plan_initialized = true;
     }
