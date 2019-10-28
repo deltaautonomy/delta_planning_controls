@@ -1,5 +1,7 @@
 #include <delta_planning_controls/delta_planner.hpp>
 #include <carla_msgs/CarlaEgoVehicleControl.h>
+#include <visualization_msgs/Marker.h>
+#include <geometry_msgs/Point.h>
 #include <tf/tf.h>
 #include <iostream>
 
@@ -47,17 +49,42 @@ void DeltaPlanner::publishControl(VehicleControl control)
     control_pub.publish(msg);
 }
 
+void DeltaPlanner::visualizeEvasiveTrajectory(MatrixXd trajectory)
+{
+    visualization_msgs::Marker marker;
+    marker.header.frame_id = "world_frame";
+    marker.header.stamp = ros::Time();
+    marker.ns = "evasive_trajectory";
+    marker.type = visualization_msgs::Marker::LINE_STRIP // check this
+    marker.action = visualization_msgs::Marker::ADD;
+
+    for (int i=0; i<trajectory.rows(); i++)
+    {
+        geometry_msgs::Point point;
+        point.x = trajectory(i,0);
+        point.y = trajectory(i,1);
+        point.z = 0;
+        marker.Point.push_back(point);
+    }
+    marker.scale.x = 0.3
+    marker.color.a = 1.0;
+    marker.color.r = 0.0;
+    marker.color.g = 0.0;
+    marker.color.b = 0.0;
+    traj_pub.publish(marker);
+}
+
 void DeltaPlanner::run()
 {
     if(!_plan_initialized) {
         // call the planner
-        _planner.getEvasiveTrajectory();
+       MatrixXd planned_traj = _planner.getEvasiveTrajectory();
         //_controller.setPlan(plan)
         _plan_initialized = true;
     }
     cout<<_speed_kp;
     VehicleControl control = _controller.runStep(_ego_state);
-
+    visualizeEvasiveTrajectory(planned_traj);
     publishControl(control);
 
 }
@@ -94,6 +121,8 @@ int main(int argc, char** argv)
     ros::Subscriber ego_state_sub = nh.subscribe<delta_prediction::EgoStateEstimate>("/delta/prediction/ego_vehicle/state", 10, &DeltaPlanner::egoStateCB, &planner_obj);
 
     planner_obj.control_pub = nh.advertise<carla_msgs::CarlaEgoVehicleControl>("/delta/planning/controls", 1);
+    planner_obj.traj_pub = nh.advertise<visualization_msgs::Marker>("/delta/planning/evasive_trajectory", 1);
+    
 
     ros::Rate r(10); // 10 hz
     while (ros::ok())

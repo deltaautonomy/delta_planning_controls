@@ -45,11 +45,13 @@ private:
 
 public:
     ros::Publisher control_pub;
+    ros::Publisher traj_pub;
 
     DeltaPlanner(std::string name);
 
     // void cfgCB(delta_planning_controls::PIDReconfigureConfig &config, uint32_t level);
     void publishControl(VehicleControl control);
+    void DeltaPlanner::visualizeEvasiveTrajectory(MatrixXd trajectory);
 
     void run();
 

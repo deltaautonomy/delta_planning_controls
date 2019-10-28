@@ -22,7 +22,6 @@ QuinticPolynomialGeneration::QuinticPolynomialGeneration()
 QuinticPolynomialGeneration::QuinticPolynomialGeneration(double ctrl_freq, double max_acc_x, min_acc_x)
 {
     m_ctrl_freq = ctrl_freq;
-    // Change 3
     m_max_acceleration_x = max_acc_x;
     m_min_acceleration_x = min_acc_x;
 }
@@ -31,14 +30,12 @@ double QuinticPolynomialGeneration::getCtrlFreq() { return m_ctrl_freq; } // Get
 
 void QuinticPolynomialGeneration::setCtrlFreq(double new_ctrl_freq) { m_ctrl_freq = new_ctrl_freq; } // Setter for control freq
 
-// Change 4
 double QuinticPolynomialGeneration::getMaxPlanningTime()
 {
     double planning_time = _ego_state.vx/m_min_acceleration_x; // v=a*t a--> max deceleration
     return planning_time;
 }
 
-// Change 5
 double QuinticPolynomialGeneration::getFinalPoseX()
 {
     double t = getMaxPlanningTime();
