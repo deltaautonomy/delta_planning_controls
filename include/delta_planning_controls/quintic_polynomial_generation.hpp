@@ -4,11 +4,11 @@
  * author: Prateek Parmeshwar
  *
  *=================================================================*/
-#ifndef DELTA_VEHICLE_CONTROL_H
-#define DELTA_VEHICLE_CONTROL_H
+#ifndef QUINTIC_POLYNOMIAL_GENERATION_H
+#define QUINTIC_POLYNOMIAL_GENERATION_H
 
 #include <eigen3/Eigen/Dense>
-#include <delta_planning_controls/vehicle_state.hpp>
+#include "delta_planning_controls/vehicle_state.hpp"
 #include <iostream>
 #include <math.h>
 

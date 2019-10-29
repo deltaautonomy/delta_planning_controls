@@ -4,8 +4,8 @@
  * author: Prateek Parmeshwar
  *
  *=================================================================*/
-#include <delta_planning_controls/quintic_polynomial_generation.hpp>
-#include <delta_planning_controls/vehicle_state.hpp>
+#include "delta_planning_controls/quintic_polynomial_generation.hpp"
+#include "delta_planning_controls/vehicle_state.hpp"
 #include <eigen3/Eigen/Dense>
 #include <iostream>
 #include <math.h>
@@ -16,8 +16,8 @@ using namespace std;
 
 QuinticPolynomialGeneration::QuinticPolynomialGeneration()
     : m_ctrl_freq(0.1)
-    , m_max_acceleration_x(3)
-    , m_min_acceleration_x(6)
+    , m_max_acceleration_x(3.0)
+    , m_min_acceleration_x(6.0)
 {
 }
 
@@ -41,7 +41,7 @@ double QuinticPolynomialGeneration::getMaxPlanningTime(VehicleState _ego_state)
 double QuinticPolynomialGeneration::getFinalPoseX(VehicleState _ego_state)
 {
     double t = getMaxPlanningTime(_ego_state);
-    double xf = _ego_state.vx*t - 0.5*m_min_acceleration_x*t*t; + _ego_state.x;
+    double xf = _ego_state.vx*t - 0.5*m_min_acceleration_x*t*t + _ego_state.x;
     return xf;
 }
 // Member function for generating evasive trajectory
@@ -102,7 +102,7 @@ MatrixXd QuinticPolynomialGeneration::getEvasiveTrajectory(VehicleState _ego_sta
     MatrixXd coeffs = getPolynomialCoefficients(_ego_state);
 
     double dt = 1 / m_ctrl_freq;
-    int num_steps = (int)getMaxPlanningTime(_ego_state) * m_ctrl_freq;
+    int num_steps = (int)(getMaxPlanningTime(_ego_state) * m_ctrl_freq);
 
     MatrixXd reference_trajectory(num_steps, 4);
     for (int i = 0; i < num_steps; i++) {
@@ -110,6 +110,7 @@ MatrixXd QuinticPolynomialGeneration::getEvasiveTrajectory(VehicleState _ego_sta
         time_step << 1, dt, pow(dt, 2), pow(dt, 3), pow(dt, 4), pow(dt, 5); // Define time vector
         VectorXd tmp = coeffs * time_step; // Get traj info x,y vx, vy
         reference_trajectory.row(i) = tmp.transpose();
+        dt = dt + 1/m_ctrl_freq;
     }
     return reference_trajectory;
 }
