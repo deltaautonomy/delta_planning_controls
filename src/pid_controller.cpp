@@ -21,7 +21,7 @@ void PIDController::setPlan(Eigen::MatrixXd plan)
 {
     _plan = plan;
     _valid_plan = true;
-    _plan_size = _plan.size();
+    _plan_size = _plan.rows();
 }
 
 VehicleControl PIDController::runStep(VehicleState ego_state)

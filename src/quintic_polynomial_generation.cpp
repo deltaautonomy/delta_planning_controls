@@ -5,6 +5,7 @@
  *
  *=================================================================*/
 #include <delta_planning_controls/quintic_polynomial_generation.hpp>
+#include <delta_planning_controls/vehicle_state.hpp>
 #include <eigen3/Eigen/Dense>
 #include <iostream>
 #include <math.h>
@@ -15,11 +16,12 @@ using namespace std;
 
 QuinticPolynomialGeneration::QuinticPolynomialGeneration()
     : m_ctrl_freq(0.1)
-    , m_planning_time(1)
+    , m_max_acceleration_x(3)
+    , m_min_acceleration_x(6)
 {
 }
 
-QuinticPolynomialGeneration::QuinticPolynomialGeneration(double ctrl_freq, double max_acc_x, min_acc_x)
+QuinticPolynomialGeneration::QuinticPolynomialGeneration(double ctrl_freq, double max_acc_x, double min_acc_x)
 {
     m_ctrl_freq = ctrl_freq;
     m_max_acceleration_x = max_acc_x;
@@ -30,27 +32,27 @@ double QuinticPolynomialGeneration::getCtrlFreq() { return m_ctrl_freq; } // Get
 
 void QuinticPolynomialGeneration::setCtrlFreq(double new_ctrl_freq) { m_ctrl_freq = new_ctrl_freq; } // Setter for control freq
 
-double QuinticPolynomialGeneration::getMaxPlanningTime()
+double QuinticPolynomialGeneration::getMaxPlanningTime(VehicleState _ego_state)
 {
     double planning_time = _ego_state.vx/m_min_acceleration_x; // v=a*t a--> max deceleration
     return planning_time;
 }
 
-double QuinticPolynomialGeneration::getFinalPoseX()
+double QuinticPolynomialGeneration::getFinalPoseX(VehicleState _ego_state)
 {
-    double t = getMaxPlanningTime();
-    double xf = _ego_state.vx*t - 0.5*m_min_acceleration_x*t*t; + _ego_state.x
+    double t = getMaxPlanningTime(_ego_state);
+    double xf = _ego_state.vx*t - 0.5*m_min_acceleration_x*t*t; + _ego_state.x;
     return xf;
 }
 // Member function for generating evasive trajectory
-MatrixXd QuinticPolynomialGeneration::getPolynomialCoefficients()
+MatrixXd QuinticPolynomialGeneration::getPolynomialCoefficients(VehicleState _ego_state)
 {
     // Boundary vals is [xi,yi,xf,yf,vxi,vyi,axi,ayi]
     // minimum jerk trajectory is a 5th order polynomial
     // y = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5
     // Given initial and final values in pos, vel and acc (Note final acc is 0 and final vel is 0) coeffs are:
     double yf = 1;
-    double T = getMaxPlanningTime();
+    double T = getMaxPlanningTime(_ego_state);
     MatrixXd coeffs(4, 6); // Matrix of coefficients
     // Populate matrix with coeffs for x in pos and vel
     // Position in x
@@ -58,11 +60,11 @@ MatrixXd QuinticPolynomialGeneration::getPolynomialCoefficients()
     coeffs(0, 1) = _ego_state.vx; // a1x = vxi
     coeffs(0, 2) = _ego_state.acc_x/ 2; // a2x = axi/2
     // a3x = -(20*xi - 20*xf + 12*T*vxi + 11*axi*T**2 - 8*axi*T)/(2*T**3)
-    coeffs(0, 3) = -(20 * _ego_state.x - 20 * getFinalPoseX() + 12 * T * _ego_state.vx + 11 * _ego_state.acc_x * T * T - 8 * _ego_state.acc_x * T) / (2 * pow(T, 3));
+    coeffs(0, 3) = -(20 * _ego_state.x - 20 * getFinalPoseX(_ego_state) + 12 * T * _ego_state.vx + 11 * _ego_state.acc_x * T * T - 8 * _ego_state.acc_x * T) / (2 * pow(T, 3));
     // a4x = (30*xi - 30*xf + 16*T*vxi + 17*axi*T**2 - 14*axi*T)/(2*T**4)
-    coeffs(0, 4) = (30 * _ego_state.x - 30 * getFinalPoseX() + 16 * T * _ego_state.vx + 17 * _ego_state.acc_x * T * T - 14 * _ego_state.acc_x * T) / (2 * pow(T, 4));
+    coeffs(0, 4) = (30 * _ego_state.x - 30 * getFinalPoseX(_ego_state) + 16 * T * _ego_state.vx + 17 * _ego_state.acc_x * T * T - 14 * _ego_state.acc_x * T) / (2 * pow(T, 4));
     // a5x = -(12*xi - 12*xf + 6*T*vxi + 7*axi*T**2 - 6*axi*T)/(2*T**5)
-    coeffs(0, 5) = -(12 * _ego_state.x - 12 * getFinalPoseX() + 6 * T * _ego_state.vx + 7 * _ego_state.acc_x * T * T - 6 * _ego_state.acc_x * T) / (2 * pow(T, 5));
+    coeffs(0, 5) = -(12 * _ego_state.x - 12 * getFinalPoseX(_ego_state) + 6 * T * _ego_state.vx + 7 * _ego_state.acc_x * T * T - 6 * _ego_state.acc_x * T) / (2 * pow(T, 5));
     
     
     // Position in y
@@ -95,12 +97,12 @@ MatrixXd QuinticPolynomialGeneration::getPolynomialCoefficients()
     return coeffs;
 }
 
-MatrixXd QuinticPolynomialGeneration::getEvasiveTrajectory()
+MatrixXd QuinticPolynomialGeneration::getEvasiveTrajectory(VehicleState _ego_state)
 {
-    MatrixXd coeffs = getPolynomialCoefficients();
+    MatrixXd coeffs = getPolynomialCoefficients(_ego_state);
 
     double dt = 1 / m_ctrl_freq;
-    int num_steps = (int)getMaxPlanningTime * m_ctrl_freq;
+    int num_steps = (int)getMaxPlanningTime(_ego_state) * m_ctrl_freq;
 
     MatrixXd reference_trajectory(num_steps, 4);
     for (int i = 0; i < num_steps; i++) {

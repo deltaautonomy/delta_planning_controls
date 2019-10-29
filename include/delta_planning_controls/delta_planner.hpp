@@ -9,6 +9,7 @@
 // #include <delta_planning_controls/PIDReconfigureConfig.h>
 #include <delta_planning_controls/pid_controller.hpp>
 #include <delta_planning_controls/quintic_polynomial_generation.hpp>
+#include <eigen3/Eigen/Dense>
 
 class DeltaPlanner {
 
@@ -43,6 +44,9 @@ private:
     QuinticPolynomialGeneration _planner;
     PIDController _controller;
 
+    // Planner
+    Eigen::MatrixXd _delta_plan;
+
 public:
     ros::Publisher control_pub;
     ros::Publisher traj_pub;
@@ -51,7 +55,7 @@ public:
 
     // void cfgCB(delta_planning_controls::PIDReconfigureConfig &config, uint32_t level);
     void publishControl(VehicleControl control);
-    void DeltaPlanner::visualizeEvasiveTrajectory(MatrixXd trajectory);
+    void visualizeEvasiveTrajectory(MatrixXd trajectory);
 
     void run();
 

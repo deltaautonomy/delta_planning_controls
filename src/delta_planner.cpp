@@ -55,7 +55,7 @@ void DeltaPlanner::visualizeEvasiveTrajectory(MatrixXd trajectory)
     marker.header.frame_id = "world_frame";
     marker.header.stamp = ros::Time();
     marker.ns = "evasive_trajectory";
-    marker.type = visualization_msgs::Marker::LINE_STRIP // check this
+    marker.type = visualization_msgs::Marker::LINE_STRIP; // check this
     marker.action = visualization_msgs::Marker::ADD;
 
     for (int i=0; i<trajectory.rows(); i++)
@@ -64,9 +64,9 @@ void DeltaPlanner::visualizeEvasiveTrajectory(MatrixXd trajectory)
         point.x = trajectory(i,0);
         point.y = trajectory(i,1);
         point.z = 0;
-        marker.Point.push_back(point);
+        marker.points.push_back(point);
     }
-    marker.scale.x = 0.3
+    marker.scale.x = 0.3;
     marker.color.a = 1.0;
     marker.color.r = 0.0;
     marker.color.g = 0.0;
@@ -78,14 +78,15 @@ void DeltaPlanner::run()
 {
     if(!_plan_initialized) {
         // call the planner
-       MatrixXd planned_traj = _planner.getEvasiveTrajectory();
-        //_controller.setPlan(plan)
+       MatrixXd planned_traj = _planner.getEvasiveTrajectory(_ego_state);
+        // _controller.setPlan(planned_traj);
+        _delta_plan = planned_traj;
         _plan_initialized = true;
     }
     cout<<_speed_kp;
-    VehicleControl control = _controller.runStep(_ego_state);
-    visualizeEvasiveTrajectory(planned_traj);
-    publishControl(control);
+    // VehicleControl control = _controller.runStep(_ego_state);
+    visualizeEvasiveTrajectory(_delta_plan);
+    // publishControl(control);
 
 }
 

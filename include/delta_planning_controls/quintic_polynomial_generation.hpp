@@ -8,6 +8,7 @@
 #define DELTA_VEHICLE_CONTROL_H
 
 #include <eigen3/Eigen/Dense>
+#include <delta_planning_controls/vehicle_state.hpp>
 #include <iostream>
 #include <math.h>
 
@@ -20,27 +21,26 @@ class QuinticPolynomialGeneration {
     // Define member variables
 private:
     double m_ctrl_freq; // Controller frequency
-    // Change 2
     double m_max_acceleration_x; // Max longitudinal acceleration
     double m_min_acceleration_x; // Max longitudinal deceleration 
 
 public:
     QuinticPolynomialGeneration();
 
-    QuinticPolynomialGeneration(double ctrl_freq, double planning_time);
+    QuinticPolynomialGeneration(double ctrl_freq, double max_acc_x, double min_acc_x);
 
     // Define member functions
     double getCtrlFreq(); // Getter for control freq
-    double getMaxPlanningTime(); // Getter for planning time
-    double getFinalPoseX(); // Get final x position
+    double getMaxPlanningTime(VehicleState _ego_state); // Getter for planning time
+    double getFinalPoseX(VehicleState _ego_state); // Get final x position
 
     void setCtrlFreq(double new_ctrl_freq); // Setter for control freq
 
     // Member function for getting coefficients of 5th order polynomial
-    MatrixXd getPolynomialCoefficients();
+    MatrixXd getPolynomialCoefficients(VehicleState _ego_state);
 
     // Member function to generate evasive trajectory
-    MatrixXd getEvasiveTrajectory();
+    MatrixXd getEvasiveTrajectory(VehicleState _ego_state);
 };
 
 #endif
