@@ -3,9 +3,9 @@
     <include file="$(find delta_perception)/launch/play_rosbag.launch">
         <arg name="filename" value="$(find delta_perception)/bags/tracking_validation_crash_02.bag" />
     </include>
-    
 
-	<node pkg="delta_planning_controls" type="delta_planning_controls_node" name="delta_planning_controls" required="true">
+
+	<node pkg="delta_planning_controls" type="delta_planning_controls_node" name="delta_planning_controls" output="screen" required="true">
 	    <rosparam file="$(find delta_planning_controls)/params/PID.yaml" command="load"/>
 
 	</node>

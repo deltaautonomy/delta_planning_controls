@@ -1,21 +1,25 @@
 Controller:
   dt: 0
 
-  speed_kp: 0
-  speed_ki: 0
-  speed_kd: 0
+  speed_kp: 1.0
+  speed_ki: 2.0
+  speed_kd: 3.0
 
-  steer_k1: 0
-  steer_k2: 0
+  steer_k1: 1.0
+  steer_k2: 1.0
 
-  steer_max: 1
-  steer_min: -1
+  steer_max: 1.0
+  steer_min: -1.0
 
-  brake_max: 1
-  brake_min: -1
+  brake_max: 1.0
+  brake_min: -1.0
 
-  throttle_max: 1
-  throttle_min: -1
+  throttle_max: 1.0
+  throttle_min: -1.0
 
 Planner:
-  some_param: 0.1
+  planner_frequency: 20
+  max_acceleration_x: 4.0
+  max_decceleration_x: 7.0
+  max_acceleration_y: 2.0
+  max_decceleration_y: 3.0

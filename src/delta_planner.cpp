@@ -4,6 +4,7 @@
 #include <geometry_msgs/Point.h>
 #include <tf/tf.h>
 #include <iostream>
+#include <ros/console.h>
 
 DeltaPlanner::DeltaPlanner(std::string name)
 {
@@ -11,30 +12,30 @@ DeltaPlanner::DeltaPlanner(std::string name)
     _private_nh = private_nh;
 
     _private_nh.param("dt", _dt, 0.1);
-    _private_nh.param("speed_kp", _speed_kp, 1.0);
-    _private_nh.param("speed_ki", _speed_ki, 0.01);
-    _private_nh.param("speed_kd", _speed_kd, 0.1);
-    _private_nh.param("steer_k1", _steer_k1, 1.0);
-    _private_nh.param("steer_k2", _steer_k2, 1.0);
+    _private_nh.param("/delta_planning_controls/Controller/speed_kp", _speed_kp, 1.0);
+    _private_nh.param("/delta_planning_controls/Controller/speed_ki", _speed_ki, 0.01);
+    _private_nh.param("/delta_planning_controls/Controller/speed_kd", _speed_kd, 0.1);
+    _private_nh.param("/delta_planning_controls/Controller/steer_k1", _steer_k1, 1.0);
+    _private_nh.param("/delta_planning_controls/Controller/steer_k2", _steer_k2, 1.0);
 
-    _private_nh.param("steer_max", _steer_max, 1.0);
-    _private_nh.param("steer_min", _steer_min, -1.0);
-    _private_nh.param("brake_max", _brake_max, 0.0);
-    _private_nh.param("brake_min", _brake_min, -1.0);
-    _private_nh.param("throttle_max", _throttle_max, 1.0);
-    _private_nh.param("throttle_min", _throttle_min, 0.0);
+    _private_nh.param("/delta_planning_controls/Controller/steer_max", _steer_max, 1.0);
+    _private_nh.param("/delta_planning_controls/Controller/steer_min", _steer_min, -1.0);
+    _private_nh.param("/delta_planning_controls/Controller/brake_max", _brake_max, 0.0);
+    _private_nh.param("/delta_planning_controls/Controller/brake_min", _brake_min, -1.0);
+    _private_nh.param("/delta_planning_controls/Controller/throttle_max", _throttle_max, 1.0);
+    _private_nh.param("/delta_planning_controls/Controller/throttle_min", _throttle_min, 0.0);
 
-    _private_nh.param("control_frequency", _ctrl_freq, 20.0);
-    _private_nh.param("max_acceleration_x", _max_acceleration_x, 4.0);
-    _private_nh.param("max_decceleration_x", _min_acceleration_x, 7.0);
-    _private_nh.param("max_acceleration_y", _max_acceleration_y, 2.0);
-    _private_nh.param("max_decceleration_y", _min_acceleration_y, 3.0);
+    _private_nh.param("/delta_planning_controls/Planner/planner_frequency", _planner_freq, 20.0);
+    _private_nh.param("/delta_planning_controls/Planner/max_acceleration_x", _max_acceleration_x, 4.0);
+    _private_nh.param("/delta_planning_controls/Planner/max_decceleration_x", _min_acceleration_x, 7.0);
+    _private_nh.param("/delta_planning_controls/Planner/max_acceleration_y", _max_acceleration_y, 2.0);
+    _private_nh.param("/delta_planning_controls/Planner/max_decceleration_y", _min_acceleration_y, 3.0);
 
-
+    cout<<_speed_kp<<"\n";
 
     _ego_state = VehicleState();
 
-    _planner = QuinticPolynomialGeneration(20.0, 3.0, 7.0);
+    _planner = QuinticPolynomialGeneration(_planner_freq, _max_acceleration_x, _min_acceleration_x);
     _plan_initialized = false;
     _controller = PIDController(_speed_kp, _speed_kd, _speed_ki, _steer_max, _steer_min, _steer_k1, _steer_k2, _dt, _throttle_max, _brake_min);
 }
@@ -50,10 +51,9 @@ void DeltaPlanner::publishControl(VehicleControl control)
 }
 
 void DeltaPlanner::visualizeEvasiveTrajectory(MatrixXd trajectory)
-{
-    visualization_msgs::Marker marker;
-    marker.header.frame_id = "world_frame";
-    marker.header.stamp = ros::Time();
+{   visualization_msgs::Marker marker;
+    marker.header.frame_id = "map";
+    marker.header.stamp = _stamp;
     marker.ns = "evasive_trajectory";
     marker.type = visualization_msgs::Marker::LINE_STRIP; // check this
     marker.action = visualization_msgs::Marker::ADD;
@@ -63,30 +63,35 @@ void DeltaPlanner::visualizeEvasiveTrajectory(MatrixXd trajectory)
         geometry_msgs::Point point;
         point.x = trajectory(i,0);
         point.y = trajectory(i,1);
-        point.z = 0;
+        point.z = 0.5;
         marker.points.push_back(point);
     }
     marker.scale.x = 0.3;
+    marker.scale.y = 0.3;
     marker.color.a = 1.0;
-    marker.color.r = 0.0;
+    marker.color.r = 1.0;
     marker.color.g = 0.0;
     marker.color.b = 0.0;
     traj_pub.publish(marker);
 }
 
 void DeltaPlanner::run()
-{
+{   
+    // cout<<_plan_initialized<<endl;
     if(!_plan_initialized) {
         // call the planner
-       MatrixXd planned_traj = _planner.getEvasiveTrajectory(_ego_state);
-        // _controller.setPlan(planned_traj);
-        _delta_plan = planned_traj;
-        _plan_initialized = true;
+        cout<<"EGO STATE: "<<_ego_state.acc_x<<" "<<_ego_state.vx<<endl;
+        _delta_plan = _planner.getEvasiveTrajectory(_ego_state);  
+        cout<<"traj: "<<_delta_plan<<'\n'<<endl;
+
+        if (_delta_plan.rows() > 10) {
+            _controller.setPlan(_delta_plan);
+            _plan_initialized = true;
+        }
     }
-    cout<<_speed_kp;
-    // VehicleControl control = _controller.runStep(_ego_state);
+    VehicleControl control = _controller.runStep(_ego_state);
     visualizeEvasiveTrajectory(_delta_plan);
-    // publishControl(control);
+    publishControl(control);
 
 }
 

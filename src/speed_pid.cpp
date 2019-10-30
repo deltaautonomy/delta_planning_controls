@@ -26,8 +26,8 @@ SpeedPID::SpeedPID(double kp, double kd, double ki, double dt, double max, doubl
 
 pair<double, double> SpeedPID::_getThrottleBrake(double control)
 {
-    double throttle = 0, brake = 0;
-    if (control > 0) {
+    double throttle = 0.0, brake = 0.0;
+    if (control > 0.0) {
         if (control < _max)
             throttle = control;
         else

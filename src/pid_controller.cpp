@@ -3,6 +3,8 @@
 
 #include <delta_planning_controls/pid_controller.hpp>
 
+using namespace std;
+
 PIDController::PIDController()
 {
     _plan_size = 0;
@@ -15,6 +17,8 @@ PIDController::PIDController(double kp, double kd, double ki, double steer_max,
     _plan_size = 0;
     lateral_controller = StanleyController(k1, k2, dt, steer_max, steer_min);
     longitudinal_controller = SpeedPID(kp, ki, kd, dt, throttle_max, brake_min);
+    _valid_plan = false;
+
 }
 
 void PIDController::setPlan(Eigen::MatrixXd plan)
@@ -27,25 +31,26 @@ void PIDController::setPlan(Eigen::MatrixXd plan)
 
 VehicleControl PIDController::runStep(VehicleState ego_state)
 {   VehicleControl ctrl;
-    if (_valid_plan == true) {
+    if ((_valid_plan == true) && (_plan_size > 3)) {
         int idx = _findClosestWaypoint(ego_state);
+        cout<<"Current path index"<<idx<<endl;
+
         double distance = ego_state.getDistance(_plan(idx, 0), _plan(idx, 1));
         double slope = _findPathSlope(idx);
         double desired_speed = sqrt(pow(_plan(idx, 2), 2) + pow(_plan(idx, 3), 2));
-
         double ego_speed = ego_state.getVelocity();
         double ego_orientation = ego_state.yaw;
         double ego_vx = ego_state.vx;
 
         // get controls
+        cout<<"SPEED: "<<desired_speed<<" "<<ego_speed<<endl;
         std::pair<double, double> speed_control = longitudinal_controller.updateError(desired_speed, ego_speed);
         double steering_control = lateral_controller.updateError(slope - ego_orientation, distance, ego_vx);
-
-        VehicleControl ctrl = { steering_control, speed_control.first, speed_control.second };
+        VehicleControl ctrl(steering_control, speed_control.first, speed_control.second);
+        cout<<"CONTROL: "<<speed_control.first<<" "<<speed_control.second<<endl;
     } else {
         VehicleControl ctrl = {0, 0, 0};
     }
-
     return ctrl;
 }
 

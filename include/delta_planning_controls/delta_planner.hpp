@@ -30,7 +30,7 @@ private:
     double _steer_k1;
     double _steer_k2;
 
-    double _ctrl_freq;
+    double _planner_freq;
     double _max_acceleration_x;
     double _min_acceleration_x;
     double _max_acceleration_y;

@@ -51,7 +51,7 @@ MatrixXd QuinticPolynomialGeneration::getPolynomialCoefficients(VehicleState _eg
     // minimum jerk trajectory is a 5th order polynomial
     // y = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5
     // Given initial and final values in pos, vel and acc (Note final acc is 0 and final vel is 0) coeffs are:
-    double yf = 1;
+    double yf = _ego_state.y-4;
     double T = getMaxPlanningTime(_ego_state);
     MatrixXd coeffs(4, 6); // Matrix of coefficients
     // Populate matrix with coeffs for x in pos and vel
@@ -94,6 +94,7 @@ MatrixXd QuinticPolynomialGeneration::getPolynomialCoefficients(VehicleState _eg
     coeffs(3, 4) = 5 * coeffs(1, 5);
     coeffs(3, 5) = 0;
 
+
     return coeffs;
 }
 
@@ -103,7 +104,7 @@ MatrixXd QuinticPolynomialGeneration::getEvasiveTrajectory(VehicleState _ego_sta
 
     double dt = 1 / m_ctrl_freq;
     int num_steps = (int)(getMaxPlanningTime(_ego_state) * m_ctrl_freq);
-
+    cout<<"max_planning time"<<num_steps<<"\n";
     MatrixXd reference_trajectory(num_steps, 4);
     for (int i = 0; i < num_steps; i++) {
         VectorXd time_step(6, 1);
@@ -112,5 +113,6 @@ MatrixXd QuinticPolynomialGeneration::getEvasiveTrajectory(VehicleState _ego_sta
         reference_trajectory.row(i) = tmp.transpose();
         dt = dt + 1/m_ctrl_freq;
     }
+    cout<<"traj: "<<reference_trajectory<<'\n'<<endl;
     return reference_trajectory;
 }
