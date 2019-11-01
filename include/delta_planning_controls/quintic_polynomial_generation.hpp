@@ -27,7 +27,7 @@ private:
 public:
     QuinticPolynomialGeneration();
 
-    QuinticPolynomialGeneration(double ctrl_freq, double max_acc_x, double min_acc_x);
+    QuinticPolynomialGeneration(double ctrl_freq, double max_acc_x=3.0, double min_acc_x=8.0);
 
     // Define member functions
     double getCtrlFreq(); // Getter for control freq
