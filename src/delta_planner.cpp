@@ -1,5 +1,5 @@
 #include <delta_planning_controls/delta_planner.hpp>
-#include <carla_msgs/CarlaEgoVehicleControl.h>
+#include <carla_ros_bridge/CarlaVehicleControl.h>
 #include <visualization_msgs/Marker.h>
 #include <geometry_msgs/Point.h>
 #include <tf/tf.h>
