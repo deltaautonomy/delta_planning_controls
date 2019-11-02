@@ -4,6 +4,7 @@
 #include <carla_ros_bridge/CarlaVehicleControl.h>
 #include <delta_planning_controls/vehicle_state.hpp>
 #include <delta_msgs/EgoStateEstimate.h>
+#include <delta_msgs/LaneMarkingArray.h>
 #include <dynamic_reconfigure/server.h>
 #include <ros/ros.h>
 // #include <delta_planning_controls/PIDReconfigureConfig.h>
