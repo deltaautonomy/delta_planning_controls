@@ -3,7 +3,7 @@
 
 #include <carla_msgs/CarlaEgoVehicleControl.h>
 #include <delta_planning_controls/vehicle_state.hpp>
-#include <delta_prediction/EgoStateEstimate.h>
+#include <delta_msgs/EgoStateEstimate.h>
 #include <dynamic_reconfigure/server.h>
 #include <ros/ros.h>
 // #include <delta_planning_controls/PIDReconfigureConfig.h>
