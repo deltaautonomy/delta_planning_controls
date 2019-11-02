@@ -17,11 +17,11 @@ using namespace std;
 QuinticPolynomialGeneration::QuinticPolynomialGeneration()
     : m_ctrl_freq(0.1)
     , m_max_acceleration_x(3.0)
-    , m_min_acceleration_x(6.0)
+    , m_min_acceleration_x(8.0)
 {
 }
 
-QuinticPolynomialGeneration::QuinticPolynomialGeneration(double ctrl_freq, double max_acc_x, double min_acc_x)
+QuinticPolynomialGeneration::QuinticPolynomialGeneration(double ctrl_freq, double max_acc_x=3.0, double min_acc_x=8.0)
 {
     m_ctrl_freq = ctrl_freq;
     m_max_acceleration_x = max_acc_x;
