@@ -8,7 +8,6 @@ add_compile_options(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
-  delta_msgs
   dynamic_reconfigure
   visualization_msgs)
 
@@ -26,10 +25,10 @@ generate_dynamic_reconfigure_options(
 ###################################
 
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES delta_planning_controls
-#  CATKIN_DEPENDS other_catkin_pkg
-#  DEPENDS system_lib
+  INCLUDE_DIRS include
+  LIBRARIES ${PROJECT_NAME}
+  CATKIN_DEPENDS delta_msgs carla_ros_bridge
+  # DEPENDS system_lib
 )
 
 ###########
@@ -55,7 +54,7 @@ add_library(${PROJECT_NAME}
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context

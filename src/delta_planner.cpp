@@ -42,7 +42,7 @@ DeltaPlanner::DeltaPlanner(std::string name)
 
 void DeltaPlanner::publishControl(VehicleControl control)
 {
-    carla_msgs::CarlaEgoVehicleControl msg;
+    carla_ros_bridge::CarlaVehicleControl msg;
     msg.header.stamp = _stamp;
     msg.steer = control.steer;
     msg.brake = control.brake;
@@ -95,7 +95,7 @@ void DeltaPlanner::run()
 
 }
 
-void DeltaPlanner::egoStateCB(const delta_prediction::EgoStateEstimate::ConstPtr& msg)
+void DeltaPlanner::egoStateCB(const delta_msgs::EgoStateEstimate::ConstPtr& msg)
 {
     _stamp = msg->header.stamp;
 
@@ -124,9 +124,9 @@ int main(int argc, char** argv)
 
     DeltaPlanner planner_obj(std::string("planner"));
 
-    ros::Subscriber ego_state_sub = nh.subscribe<delta_prediction::EgoStateEstimate>("/delta/prediction/ego_vehicle/state", 10, &DeltaPlanner::egoStateCB, &planner_obj);
+    ros::Subscriber ego_state_sub = nh.subscribe<delta_msgs::EgoStateEstimate>("/delta/prediction/ego_vehicle/state", 10, &DeltaPlanner::egoStateCB, &planner_obj);
 
-    planner_obj.control_pub = nh.advertise<carla_msgs::CarlaEgoVehicleControl>("/delta/planning/controls", 1);
+    planner_obj.control_pub = nh.advertise<carla_ros_bridge::CarlaVehicleControl>("/delta/planning/controls", 1);
     planner_obj.traj_pub = nh.advertise<visualization_msgs::Marker>("/delta/planning/evasive_trajectory", 1);
     
 

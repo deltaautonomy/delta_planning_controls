@@ -27,6 +27,12 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>cmake_modules</build_depend>
+  <build_depend>delta_msgs</build_depend>
+  <build_depend>carla_ros_bridge</build_depend>
+  <build_export_depend>delta_msgs</build_export_depend>
+  <build_export_depend>carla_ros_bridge</build_export_depend>
+  <exec_depend>delta_msgs</exec_depend>
+  <exec_depend>carla_ros_bridge</exec_depend>
   <depend>rosparam_handler</depend>
   <depend>dynamic_reconfigure</depend>
   <depend>geometry_msgs</depend>

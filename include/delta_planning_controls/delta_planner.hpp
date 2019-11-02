@@ -1,7 +1,7 @@
 #ifndef _DELTA_PLANNER_H_
 #define _DELTA_PLANNER_H_
 
-#include <carla_msgs/CarlaEgoVehicleControl.h>
+#include <carla_ros_bridge/CarlaVehicleControl.h>
 #include <delta_planning_controls/vehicle_state.hpp>
 #include <delta_msgs/EgoStateEstimate.h>
 #include <dynamic_reconfigure/server.h>
@@ -59,7 +59,7 @@ public:
 
     void run();
 
-    void egoStateCB(const delta_prediction::EgoStateEstimate::ConstPtr& msg);
+    void egoStateCB(const delta_msgs::EgoStateEstimate::ConstPtr& msg);
 };
 
 #endif /* _DELTA_PLANNER_H_ */
