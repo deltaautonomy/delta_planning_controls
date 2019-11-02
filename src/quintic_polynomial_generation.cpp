@@ -21,7 +21,7 @@ QuinticPolynomialGeneration::QuinticPolynomialGeneration()
 {
 }
 
-QuinticPolynomialGeneration::QuinticPolynomialGeneration(double ctrl_freq, double max_acc_x=3.0, double min_acc_x=8.0)
+QuinticPolynomialGeneration::QuinticPolynomialGeneration(double ctrl_freq, double max_acc_x, double min_acc_x)
 {
     m_ctrl_freq = ctrl_freq;
     m_max_acceleration_x = max_acc_x;

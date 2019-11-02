@@ -4,6 +4,8 @@
 #include <carla_msgs/CarlaEgoVehicleControl.h>
 #include <delta_planning_controls/vehicle_state.hpp>
 #include <delta_prediction/EgoStateEstimate.h>
+#include <delta_perception/LaneMarking.h>
+#include <delta_perception/LaneMarkingArray.h>
 #include <dynamic_reconfigure/server.h>
 #include <ros/ros.h>
 // #include <delta_planning_controls/PIDReconfigureConfig.h>
@@ -60,6 +62,7 @@ public:
     void run();
 
     void egoStateCB(const delta_prediction::EgoStateEstimate::ConstPtr& msg);
+    void laneMarkingCB(const delta_perception::LaneMarkingArray::ConstPtr& msg);
 };
 
 #endif /* _DELTA_PLANNER_H_ */

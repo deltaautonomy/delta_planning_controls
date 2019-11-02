@@ -5,6 +5,7 @@
 #include <tf/tf.h>
 #include <iostream>
 #include <ros/console.h>
+#include <math.h>
 
 DeltaPlanner::DeltaPlanner(std::string name)
 {
@@ -112,10 +113,21 @@ void DeltaPlanner::egoStateCB(const delta_prediction::EgoStateEstimate::ConstPtr
     m.getRPY(roll, pitch, yaw);
 
     _ego_state.yaw = yaw; //wrong
-    _ego_state.vx = msg->twist.linear.x;
-    _ego_state.vy = msg->twist.linear.y;
+    _ego_state.vx = (msg->twist.linear.x)*cos(yaw);
+    _ego_state.vy = (msg->twist.linear.y)*sin(yaw);
     _ego_state.yaw_rate = msg->twist.angular.y;
+    _ego_state.acc_x = (msg->accel.linear.x)*cos(yaw);
+    _ego_state.acc_y = (msg->accel.linear.y)*sin(yaw);
 }
+void DeltaPlanner::laneMarkingCB(const delta_perception::LaneMarkingArray::ConstPtr& msg)
+{
+    // vector <double> lane_intercepts;
+    // for (int i=0; i < sizeof(msg)/sizeof(msg[0]); i++) // how to iterate over Lane marking array
+    // {
+    //     lane_intercepts.push_back(msg[i]->intercept);
+    // }
+}
+
 
 int main(int argc, char** argv)
 {
@@ -125,6 +137,7 @@ int main(int argc, char** argv)
     DeltaPlanner planner_obj(std::string("planner"));
 
     ros::Subscriber ego_state_sub = nh.subscribe<delta_prediction::EgoStateEstimate>("/delta/prediction/ego_vehicle/state", 10, &DeltaPlanner::egoStateCB, &planner_obj);
+    ros::Subscriber lane_markings_sub = nh.subscribe<delta_perception::LaneMarkingArray>("/delta/perception/lane_detection/markings", 10, &DeltaPlanner::laneMarkingCB, &planner_obj);
 
     planner_obj.control_pub = nh.advertise<carla_msgs::CarlaEgoVehicleControl>("/delta/planning/controls", 1);
     planner_obj.traj_pub = nh.advertise<visualization_msgs::Marker>("/delta/planning/evasive_trajectory", 1);
