@@ -12,6 +12,7 @@
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
+using Eigen::Vector3d;
 using namespace std;
 
 QuinticPolynomialGeneration::QuinticPolynomialGeneration()
@@ -41,8 +42,17 @@ double QuinticPolynomialGeneration::getMaxPlanningTime(VehicleState _ego_state)
 double QuinticPolynomialGeneration::getFinalPoseX(VehicleState _ego_state)
 {
     double t = getMaxPlanningTime(_ego_state);
-    double xf = _ego_state.vx*t - 0.5*m_min_acceleration_x*t*t + _ego_state.x;
+    double xf = _ego_state.vx*t - 0.5*m_min_acceleration_x*t*t;
     return xf;
+}
+
+MatrixXd QuinticPolynomialGeneration::homogenousTransWorldEgo(VehicleState _ego_state)
+{
+    MatrixXd homo_trans(3,3);
+    homo_trans<<cos(_ego_state.yaw), -sin(_ego_state.yaw), _ego_state.x,
+                  sin(_ego_state.yaw), cos(_ego_state.yaw), _ego_state.y,
+                  0, 0, 1;
+    return homo_trans;
 }
 // Member function for generating evasive trajectory
 MatrixXd QuinticPolynomialGeneration::getPolynomialCoefficients(VehicleState _ego_state)
@@ -51,7 +61,11 @@ MatrixXd QuinticPolynomialGeneration::getPolynomialCoefficients(VehicleState _eg
     // minimum jerk trajectory is a 5th order polynomial
     // y = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5
     // Given initial and final values in pos, vel and acc (Note final acc is 0 and final vel is 0) coeffs are:
-    double yf = _ego_state.y-4;
+    double shoulder_const = 5;
+    double yf = 0;
+    MatrixXd homo_trans = homogenousTransWorldEgo(_ego_state); // Get transformation of ego vehicle
+    Vector3d ego_pose(getFinalPoseX(_ego_state), shoulder_const, 1); 
+    Vector3d world_pose = homo_trans*ego_pose;
     double T = getMaxPlanningTime(_ego_state);
     MatrixXd coeffs(4, 6); // Matrix of coefficients
     // Populate matrix with coeffs for x in pos and vel

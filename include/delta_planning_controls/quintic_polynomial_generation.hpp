@@ -33,6 +33,7 @@ public:
     double getCtrlFreq(); // Getter for control freq
     double getMaxPlanningTime(VehicleState _ego_state); // Getter for planning time
     double getFinalPoseX(VehicleState _ego_state); // Get final x position
+    MatrixXd homogenousTransWorldEgo(VehicleState _ego_state); // Get homogenous transform of ego vehicle wrt world
 
     void setCtrlFreq(double new_ctrl_freq); // Setter for control freq
 
