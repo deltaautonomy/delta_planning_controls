@@ -43,6 +43,8 @@ double QuinticPolynomialGeneration::getFinalPoseX(VehicleState _ego_state)
 {
     double t = getMaxPlanningTime(_ego_state);
     double xf = _ego_state.vx*t - 0.5*m_min_acceleration_x*t*t;
+    // cout<<"Vel x value: "<<_ego_state.vx<<'\n';
+    // cout<<"Final x value: "<<xf<<'\n';
     return xf;
 }
 
@@ -62,35 +64,63 @@ MatrixXd QuinticPolynomialGeneration::getPolynomialCoefficients(VehicleState _eg
     // y = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5
     // Given initial and final values in pos, vel and acc (Note final acc is 0 and final vel is 0) coeffs are:
     double shoulder_const = 5;
-    double yf = 0;
     MatrixXd homo_trans = homogenousTransWorldEgo(_ego_state); // Get transformation of ego vehicle
-    Vector3d ego_pose(getFinalPoseX(_ego_state), shoulder_const, 1); 
-    Vector3d world_pose = homo_trans*ego_pose;
+    // cout<<homo_trans<<'\n'<<endl;
+
+    Vector3d ego_pose_fin(getFinalPoseX(_ego_state), shoulder_const, 1); // pose in ego frame
+    // cout<<"EGO POSE FINAL: "<<ego_pose_fin<<'\n';
+    Vector3d ego_vel(_ego_state.vx, _ego_state.vy, 0); // velocity in ego frame
+    // cout<<ego_vel<<'\n'<<endl;
+    Vector3d ego_acc(_ego_state.acc_x, _ego_state.acc_y, 0); // acceleration in ego frame
+
+
+    Vector3d world_pose_fin = homo_trans*ego_pose_fin;
+    Vector3d world_vel = homo_trans*ego_vel;
+    Vector3d world_acc = homo_trans*ego_acc;
+    // cout<<world_vel<<'\n'<<endl;
+
+    // Get vals in world frame
+    // cout<<
+    double xi = _ego_state.x;
+    double yi = _ego_state.y;
+
+    double xf = world_pose_fin(1);
+    double yf = world_pose_fin(2);
+    // cout<<"World Pose: "<<world_pose_fin<<'\n'<<endl;
+    double vxi = world_vel(1);
+    double vyi = world_vel(2);
+    // cout<<"World Vel: "<<world_vel<<'\n'<<endl;
+    cout<<"World Acc: "<<world_acc<<'\n'<<endl;
+    // cout<<"vxi: "<<_ego_state.vx<<'\n'<<endl;
+
+    double axi = world_acc(1);
+    double ayi = world_acc(2);
+
     double T = getMaxPlanningTime(_ego_state);
     MatrixXd coeffs(4, 6); // Matrix of coefficients
     // Populate matrix with coeffs for x in pos and vel
     // Position in x
-    coeffs(0, 0) = _ego_state.x; // a0x = xi
-    coeffs(0, 1) = _ego_state.vx; // a1x = vxi
-    coeffs(0, 2) = _ego_state.acc_x/ 2; // a2x = axi/2
+    coeffs(0, 0) = xi; // a0x = xi
+    coeffs(0, 1) = vxi; // a1x = vxi
+    coeffs(0, 2) = axi/2; // a2x = axi/2
     // a3x = -(20*xi - 20*xf + 12*T*vxi + 11*axi*T**2 - 8*axi*T)/(2*T**3)
-    coeffs(0, 3) = -(20 * _ego_state.x - 20 * getFinalPoseX(_ego_state) + 12 * T * _ego_state.vx + 11 * _ego_state.acc_x * T * T - 8 * _ego_state.acc_x * T) / (2 * pow(T, 3));
+    coeffs(0, 3) = -(20 * xi - 20 * xf + 12 * T * vxi + 11 * axi * T * T - 8 * axi * T) / (2 * pow(T, 3));
     // a4x = (30*xi - 30*xf + 16*T*vxi + 17*axi*T**2 - 14*axi*T)/(2*T**4)
-    coeffs(0, 4) = (30 * _ego_state.x - 30 * getFinalPoseX(_ego_state) + 16 * T * _ego_state.vx + 17 * _ego_state.acc_x * T * T - 14 * _ego_state.acc_x * T) / (2 * pow(T, 4));
+    coeffs(0, 4) = (30 * xi - 30 * xf + 16 * T * vxi + 17 * axi * T * T - 14 * axi * T) / (2 * pow(T, 4));
     // a5x = -(12*xi - 12*xf + 6*T*vxi + 7*axi*T**2 - 6*axi*T)/(2*T**5)
-    coeffs(0, 5) = -(12 * _ego_state.x - 12 * getFinalPoseX(_ego_state) + 6 * T * _ego_state.vx + 7 * _ego_state.acc_x * T * T - 6 * _ego_state.acc_x * T) / (2 * pow(T, 5));
+    coeffs(0, 5) = -(12 * xi - 12 * xf + 6 * T * vxi + 7 * axi * T * T - 6 * axi * T) / (2 * pow(T, 5));
     
     
     // Position in y
-    coeffs(1, 0) = _ego_state.y; // a0y = yi
-    coeffs(1, 1) = _ego_state.vy; // a1y = vyi
-    coeffs(1, 2) = _ego_state.acc_y / 2; // a2y = ayi/2
+    coeffs(1, 0) = yi; // a0y = yi
+    coeffs(1, 1) = vyi; // a1y = vyi
+    coeffs(1, 2) = ayi/2; // a2y = ayi/2
     // a3y = -(20*yi - 20*yf + 12*T*vyi + 11*ayi*T**2 - 8*ayi*T)/(2*T**3)
-    coeffs(1, 3) = -(20 * _ego_state.y - 20 * yf + 12 * T * _ego_state.vy + 11 * _ego_state.acc_y * T * T - 8 * _ego_state.acc_y * T) / (2 * pow(T, 3));
+    coeffs(1, 3) = -(20 * yi - 20 * yf + 12 * T * vyi + 11 * ayi * T * T - 8 * ayi * T) / (2 * pow(T, 3));
     // a4y = (30*yi - 30*yf + 16*T*vyi + 17*ayi*T**2 - 14*ayi*T)/(2*T**4)
-    coeffs(1, 4) = (30 * _ego_state.y - 30 * yf + 16 * T * _ego_state.vy + 17 * _ego_state.acc_y * T * T - 14 * _ego_state.acc_y * T) / (2 * pow(T, 4));
+    coeffs(1, 4) = (30 * yi - 30 * yf + 16 * T * vyi + 17 * ayi * T * T - 14 * ayi * T) / (2 * pow(T, 4));
     // a5y = -(12*yi - 12*yf + 6*T*vyi + 7*ayi*T**2 - 6*ayi*T)/(2*T**5)
-    coeffs(1, 5) = -(12 * _ego_state.y - 12 * yf + 6 * T * _ego_state.vy + 7 * _ego_state.acc_y * T * T - 6 * _ego_state.acc_y * T) / (2 * pow(T, 5));
+    coeffs(1, 5) = -(12 * yi - 12 * yf + 6 * T * vyi + 7 * ayi * T * T - 6 * ayi * T) / (2 * pow(T, 5));
 
     // Velocity in x
     coeffs(2, 0) = coeffs(0, 1);
@@ -118,7 +148,6 @@ MatrixXd QuinticPolynomialGeneration::getEvasiveTrajectory(VehicleState _ego_sta
 
     double dt = 1 / m_ctrl_freq;
     int num_steps = (int)(getMaxPlanningTime(_ego_state) * m_ctrl_freq);
-    cout<<"max_planning time"<<num_steps<<"\n";
     MatrixXd reference_trajectory(num_steps, 4);
     for (int i = 0; i < num_steps; i++) {
         VectorXd time_step(6, 1);
@@ -127,6 +156,6 @@ MatrixXd QuinticPolynomialGeneration::getEvasiveTrajectory(VehicleState _ego_sta
         reference_trajectory.row(i) = tmp.transpose();
         dt = dt + 1/m_ctrl_freq;
     }
-    cout<<"traj: "<<reference_trajectory<<'\n'<<endl;
+    // cout<<"traj: "<<reference_trajectory<<'\n'<<endl;
     return reference_trajectory;
 }

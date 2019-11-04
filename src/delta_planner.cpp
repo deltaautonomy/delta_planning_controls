@@ -32,7 +32,7 @@ DeltaPlanner::DeltaPlanner(std::string name)
     _private_nh.param("/delta_planning_controls/Planner/max_acceleration_y", _max_acceleration_y, 2.0);
     _private_nh.param("/delta_planning_controls/Planner/max_decceleration_y", _min_acceleration_y, 3.0);
 
-    cout<<_speed_kp<<"\n";
+    // cout<<_speed_kp<<"\n";
 
     _ego_state = VehicleState();
 
@@ -81,9 +81,9 @@ void DeltaPlanner::run()
     // cout<<_plan_initialized<<endl;
     if(!_plan_initialized) {
         // call the planner
-        cout<<"EGO STATE: "<<_ego_state.acc_x<<" "<<_ego_state.vx<<endl;
+        // cout<<"EGO STATE: "<<_ego_state.acc_x<<" "<<_ego_state.vx<<endl;
         _delta_plan = _planner.getEvasiveTrajectory(_ego_state);  
-        cout<<"traj: "<<_delta_plan<<'\n'<<endl;
+        // cout<<"traj: "<<_delta_plan<<'\n'<<endl;
 
         if (_delta_plan.rows() > 10) {
             _controller.setPlan(_delta_plan);
