@@ -46,6 +46,12 @@ struct VehicleControl {
     VehicleControl(double inp_steer, double inp_throttle, double inp_brake) : steer(inp_steer), throttle(inp_throttle), brake(inp_brake) 
     {
     }
+
+    void setControls(double inp_steer, double inp_throttle, double inp_brake) {
+        steer = inp_steer;
+        throttle = inp_throttle;
+        brake = inp_brake;
+    }
 };
 
 #endif /* _VEHICLE_STATE_H_ */

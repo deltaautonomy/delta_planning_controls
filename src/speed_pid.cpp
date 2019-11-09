@@ -45,6 +45,7 @@ pair<double, double> SpeedPID::_getThrottleBrake(double control)
 pair<double, double> SpeedPID::updateError(double desired_speed, double current_speed)
 {
     double error = desired_speed - current_speed;
+    cout<<"DESIRED SPEED: "<<desired_speed<<"      CURRENT SPEED: "<<current_speed<<endl;
     _integral_error += error * _dt;
 
     double output = _Kp * error + _Ki * _integral_error + _Kd * (error - _last_error) / _dt;

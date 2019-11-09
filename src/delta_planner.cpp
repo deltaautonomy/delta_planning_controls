@@ -1,5 +1,6 @@
 #include <delta_planning_controls/delta_planner.hpp>
-#include <carla_ros_bridge/CarlaVehicleControl.h>
+// #include <carla_ros_bridge/CarlaVehicleControl.h>
+#include <carla_ros_bridge_msgs/CarlaEgoVehicleControl.h>
 #include <visualization_msgs/Marker.h>
 #include <geometry_msgs/Point.h>
 #include <tf/tf.h>
@@ -28,25 +29,26 @@ DeltaPlanner::DeltaPlanner(std::string name)
 
     _private_nh.param("/delta_planning_controls/Planner/planner_frequency", _planner_freq, 20.0);
     _private_nh.param("/delta_planning_controls/Planner/max_acceleration_x", _max_acceleration_x, 4.0);
-    _private_nh.param("/delta_planning_controls/Planner/max_decceleration_x", _min_acceleration_x, 7.0);
+    _private_nh.param("/delta_planning_controls/Planner/max_decceleration_x", _min_acceleration_x, 6.0);
     _private_nh.param("/delta_planning_controls/Planner/max_acceleration_y", _max_acceleration_y, 2.0);
     _private_nh.param("/delta_planning_controls/Planner/max_decceleration_y", _min_acceleration_y, 3.0);
+    _private_nh.param("/delta_planning_controls/Planner/shoulder_distance", _shoulder_const, -5.0);
 
     // cout<<_speed_kp<<"\n";
 
     _ego_state = VehicleState();
 
-    _planner = QuinticPolynomialGeneration(_planner_freq, _max_acceleration_x, _min_acceleration_x);
+    _planner = QuinticPolynomialGeneration(_planner_freq, _max_acceleration_x, _min_acceleration_x, _shoulder_const);
     _plan_initialized = false;
     _controller = PIDController(_speed_kp, _speed_kd, _speed_ki, _steer_max, _steer_min, _steer_k1, _steer_k2, _dt, _throttle_max, _brake_min);
 }
 
 void DeltaPlanner::publishControl(VehicleControl control)
 {
-    carla_ros_bridge::CarlaVehicleControl msg;
+    carla_ros_bridge_msgs::CarlaEgoVehicleControl msg;
     msg.header.stamp = _stamp;
     msg.steer = control.steer;
-    msg.brake = control.brake;
+    msg.brake = abs(control.brake);
     msg.throttle = control.throttle;
     control_pub.publish(msg);
 }
@@ -82,10 +84,12 @@ void DeltaPlanner::run()
     if(!_plan_initialized) {
         // call the planner
         // cout<<"EGO STATE: "<<_ego_state.acc_x<<" "<<_ego_state.vx<<endl;
-        _delta_plan = _planner.getEvasiveTrajectory(_ego_state);  
+        if(_ego_state.vx > 0) {
+            _delta_plan = _planner.getEvasiveTrajectory(_ego_state);  
         // cout<<"traj: "<<_delta_plan<<'\n'<<endl;
+        }
 
-        if (_delta_plan.rows() > 10) {
+        if (_ego_state.vx > 15) {
             _controller.setPlan(_delta_plan);
             _plan_initialized = true;
         }
@@ -139,7 +143,7 @@ int main(int argc, char** argv)
     ros::Subscriber ego_state_sub = nh.subscribe<delta_msgs::EgoStateEstimate>("/delta/prediction/ego_vehicle/state", 10, &DeltaPlanner::egoStateCB, &planner_obj);
     // ros::Subscriber lane_markings_sub = nh.subscribe<delta_msgs::LaneMarkingArray>("/delta/perception/lane_detection/markings", 10, &DeltaPlanner::laneMarkingCB, &planner_obj);
 
-    planner_obj.control_pub = nh.advertise<carla_ros_bridge::CarlaVehicleControl>("/delta/planning/controls", 1);
+    planner_obj.control_pub = nh.advertise<carla_ros_bridge_msgs::CarlaEgoVehicleControl>("/delta/planning/controls", 1);
     planner_obj.traj_pub = nh.advertise<visualization_msgs::Marker>("/delta/planning/evasive_trajectory", 1);
     
 

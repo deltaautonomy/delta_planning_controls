@@ -43,13 +43,14 @@ VehicleControl PIDController::runStep(VehicleState ego_state)
         double ego_vx = ego_state.vx;
 
         // get controls
+        cout<<"Ego Orientation "<<ego_orientation<<"          Slope"<<slope<<endl<<endl;
         // cout<<"SPEED: "<<desired_speed<<" "<<ego_speed<<endl;
         std::pair<double, double> speed_control = longitudinal_controller.updateError(desired_speed, ego_speed);
         double steering_control = lateral_controller.updateError(slope - ego_orientation, distance, ego_vx);
-        VehicleControl ctrl(steering_control, speed_control.first, speed_control.second);
-        // cout<<"CONTROL: "<<speed_control.first<<" "<<speed_control.second<<endl;
+        ctrl.setControls(steering_control, speed_control.first, speed_control.second);
+        cout<<"CONTROL: "<<speed_control.first<<" "<<speed_control.second<<" "<<steering_control<<endl;
     } else {
-        VehicleControl ctrl = {0, 0, 0};
+        ctrl.setControls(0, 0, 0);
     }
     return ctrl;
 }

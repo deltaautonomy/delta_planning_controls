@@ -4,7 +4,10 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Global Options1
         - /Perception Outputs Image1
+        - /Marker1
+        - /Marker1/Namespaces1
       Splitter Ratio: 0.5
     Tree Height: 328
   - Class: rviz/Selection
@@ -90,7 +93,7 @@ Visualization Manager:
       Marker Topic: /delta/perception/camera_track_marker
       Name: Camera Track Marker
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -98,7 +101,7 @@ Visualization Manager:
       Marker Topic: /delta/perception/radar_track_marker
       Name: Radar Track Marker
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -167,6 +170,24 @@ Visualization Manager:
         evasive_trajectory: true
       Queue Size: 100
       Value: true
+    - Alpha: 0.5
+      Cell Size: 1
+      Class: rviz/Grid
+      Color: 160; 160; 164
+      Enabled: true
+      Line Style:
+        Line Width: 0.0299999993
+        Value: Lines
+      Name: Grid
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Plane: XY
+      Plane Cell Count: 10
+      Reference Frame: <Fixed Frame>
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -192,25 +213,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 28.9064045
+      Distance: 42.2891273
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 4.38763952
-        Y: -0.0264430922
-        Z: 8.41060066
+        X: -1.28808594
+        Y: -1.27719116
+        Z: 3.7649231
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.434797525
+      Pitch: 0.469653517
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.13786769
+      Yaw: 2.97562933
     Saved: ~
 Window Geometry:
   Displays:

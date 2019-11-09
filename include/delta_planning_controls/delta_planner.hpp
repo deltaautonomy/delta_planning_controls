@@ -1,7 +1,8 @@
 #ifndef _DELTA_PLANNER_H_
 #define _DELTA_PLANNER_H_
 
-#include <carla_ros_bridge/CarlaVehicleControl.h>
+// #include <carla_ros_bridge/CarlaVehicleControl.h>
+#include <carla_ros_bridge_msgs/CarlaEgoVehicleControl.h>
 #include <delta_planning_controls/vehicle_state.hpp>
 #include <delta_msgs/EgoStateEstimate.h>
 #include <delta_msgs/LaneMarkingArray.h>
@@ -36,6 +37,7 @@ private:
     double _min_acceleration_x;
     double _max_acceleration_y;
     double _min_acceleration_y;
+    double _shoulder_const;
 
     VehicleState _ego_state;
     ros::Time _stamp;

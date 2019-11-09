@@ -23,17 +23,19 @@ private:
     double m_ctrl_freq; // Controller frequency
     double m_max_acceleration_x; // Max longitudinal acceleration
     double m_min_acceleration_x; // Max longitudinal deceleration 
+    double m_shoulder_const;
 
 public:
     QuinticPolynomialGeneration();
 
-    QuinticPolynomialGeneration(double ctrl_freq, double max_acc_x, double min_acc_x);
+    QuinticPolynomialGeneration(double ctrl_freq, double max_acc_x, double min_acc_x, double shoulder_const);
 
     // Define member functions
     double getCtrlFreq(); // Getter for control freq
     double getMaxPlanningTime(VehicleState _ego_state); // Getter for planning time
     double getFinalPoseX(VehicleState _ego_state); // Get final x position
     MatrixXd homogenousTransWorldEgo(VehicleState _ego_state); // Get homogenous transform of ego vehicle wrt world
+    MatrixXd getBoundaryValsWorldFrame(VehicleState _ego_state); // Get ploynomial boundary vals in world frame
 
     void setCtrlFreq(double new_ctrl_freq); // Setter for control freq
 
