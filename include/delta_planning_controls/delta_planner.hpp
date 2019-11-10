@@ -1,3 +1,6 @@
+#ifndef _DELTA_PLANNER_H_
+#define _DELTA_PLANNER_H_
+
 #include <ros/ros.h>
 #include <eigen3/Eigen/Dense>
 #include <dynamic_reconfigure/server.h>
@@ -11,9 +14,6 @@
 #include <carla_ros_bridge_msgs/CarlaEgoVehicleControl.h>
 // #include <delta_planning_controls/PIDReconfigureConfig.h>
 #include <delta_planning_controls/quintic_polynomial_generation.hpp>
-
-#ifndef _DELTA_PLANNER_H_
-#define _DELTA_PLANNER_H_
 
 class DeltaPlanner {
 

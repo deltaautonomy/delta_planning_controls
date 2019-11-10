@@ -1,7 +1,7 @@
-#include <cmath>
-
 #ifndef _VEHICLE_STATE_H_
 #define _VEHICLE_STATE_H_
+
+#include <cmath>
 
 struct VehicleState {
     double x;

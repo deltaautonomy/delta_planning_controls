@@ -4,14 +4,14 @@
  * Date    : Nov 10, 2019
  */
 
+#ifndef UTILS_H_
+#define UTILS_H_
+
 #include <string>
 #include <chrono>
 #include <ctime>
 
 #include <diagnostic_msgs/DiagnosticStatus.h>
-
-#ifndef UTILS_H_
-#define UTILS_H_
 
 namespace delta {
 namespace utils {

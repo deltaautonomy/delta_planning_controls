@@ -5,13 +5,13 @@
  *
  *=================================================================*/
 
+#ifndef QUINTIC_POLYNOMIAL_GENERATION_H
+#define QUINTIC_POLYNOMIAL_GENERATION_H
+
 #include <iostream>
 #include <math.h>
 #include <eigen3/Eigen/Dense>
 #include "delta_planning_controls/vehicle_state.hpp"
-
-#ifndef QUINTIC_POLYNOMIAL_GENERATION_H
-#define QUINTIC_POLYNOMIAL_GENERATION_H
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
