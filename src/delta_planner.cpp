@@ -85,8 +85,8 @@ void DeltaPlanner::run()
 {   
     _fps_logger.Lap();
 
+    // Call the planner
     if(!_plan_initialized) {
-        // call the planner
         if(_ego_state.vx > 0) {
             _delta_plan = _planner.getEvasiveTrajectory(_ego_state);  
         }
@@ -97,11 +97,12 @@ void DeltaPlanner::run()
         }
     }
 
+    // Call the controller
+    VehicleControl control = _controller.runStep(_ego_state);
+    
     _fps_logger.Tick();
 
-    VehicleControl control = _controller.runStep(_ego_state);
-    visualizeEvasiveTrajectory(_delta_plan);
-    
+    visualizeEvasiveTrajectory(_delta_plan); 
     publishControl(control);
     publishDiagnostics();
 }
@@ -133,7 +134,7 @@ void DeltaPlanner::egoStateCB(const delta_msgs::EgoStateEstimate::ConstPtr& msg)
 void DeltaPlanner::publishDiagnostics() {
     diagnostic_msgs::DiagnosticArray msg;
     msg.header.stamp = ros::Time::now();
-    auto status = delta::utils::MakeDiagnosticsStatus("planner",
+    auto status = delta::utils::MakeDiagnosticsStatus("planner_controller",
         "planning_controls", _fps_logger.GetFPS());
     msg.status.push_back(status);
     diag_pub.publish(msg);
