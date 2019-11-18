@@ -24,30 +24,32 @@ DeltaPlanner::DeltaPlanner(std::string name)
     _private_nh = private_nh;
 
     _private_nh.param("dt", _dt, 0.1);
-    _private_nh.param("/delta_planning_controls/Controller/speed_kp", _speed_kp, 1.0);
-    _private_nh.param("/delta_planning_controls/Controller/speed_ki", _speed_ki, 0.01);
-    _private_nh.param("/delta_planning_controls/Controller/speed_kd", _speed_kd, 0.1);
-    _private_nh.param("/delta_planning_controls/Controller/steer_k1", _steer_k1, 1.0);
-    _private_nh.param("/delta_planning_controls/Controller/steer_k2", _steer_k2, 1.0);
+    _private_nh.param("/planning_controls/Controller/speed_kp", _speed_kp, 1.0);
+    _private_nh.param("/planning_controls/Controller/speed_ki", _speed_ki, 0.01);
+    _private_nh.param("/planning_controls/Controller/speed_kd", _speed_kd, 0.1);
+    _private_nh.param("/planning_controls/Controller/steer_k1", _steer_k1, 1.0);
+    _private_nh.param("/planning_controls/Controller/steer_k2", _steer_k2, 1.0);
 
-    _private_nh.param("/delta_planning_controls/Controller/steer_max", _steer_max, 1.0);
-    _private_nh.param("/delta_planning_controls/Controller/steer_min", _steer_min, -1.0);
-    _private_nh.param("/delta_planning_controls/Controller/brake_max", _brake_max, 0.0);
-    _private_nh.param("/delta_planning_controls/Controller/brake_min", _brake_min, -1.0);
-    _private_nh.param("/delta_planning_controls/Controller/throttle_max", _throttle_max, 1.0);
-    _private_nh.param("/delta_planning_controls/Controller/throttle_min", _throttle_min, 0.0);
+    _private_nh.param("/planning_controls/Controller/steer_max", _steer_max, 1.0);
+    _private_nh.param("/planning_controls/Controller/steer_min", _steer_min, -1.0);
+    _private_nh.param("/planning_controls/Controller/brake_max", _brake_max, 0.0);
+    _private_nh.param("/planning_controls/Controller/brake_min", _brake_min, -1.0);
+    _private_nh.param("/planning_controls/Controller/throttle_max", _throttle_max, 1.0);
+    _private_nh.param("/planning_controls/Controller/throttle_min", _throttle_min, 0.0);
 
-    _private_nh.param("/delta_planning_controls/Planner/planner_frequency", _planner_freq, 20.0);
-    _private_nh.param("/delta_planning_controls/Planner/max_acceleration_x", _max_acceleration_x, 4.0);
-    _private_nh.param("/delta_planning_controls/Planner/max_decceleration_x", _min_acceleration_x, 6.0);
-    _private_nh.param("/delta_planning_controls/Planner/max_acceleration_y", _max_acceleration_y, 2.0);
-    _private_nh.param("/delta_planning_controls/Planner/max_decceleration_y", _min_acceleration_y, 3.0);
+    _private_nh.param("/planning_controls/Planner/planner_frequency", _planner_freq, 20.0);
+    _private_nh.param("/planning_controls/Planner/max_acceleration_x", _max_acceleration_x, 4.0);
+    _private_nh.param("/planning_controls/Planner/max_decceleration_x", _min_acceleration_x, 6.0);
+    _private_nh.param("/planning_controls/Planner/max_acceleration_y", _max_acceleration_y, 2.0);
+    _private_nh.param("/planning_controls/Planner/max_decceleration_y", _min_acceleration_y, 3.0);
     // _private_nh.param("/delta_planning_controls/Planner/shoulder_distance", _shoulder_const, -5.0);
 
-    // cout<<_speed_kp<<"\n";
+    // cout<<_steer_k1<<"\n\n\n\n\n\n\n";
 
     _ego_state = VehicleState();
-    
+    _collision_state = VehicleState();
+    _collision_time = 0.0;
+    _collision_probability = 0.0;
 
     _planner = QuinticPolynomialGeneration(_planner_freq, _max_acceleration_x, _min_acceleration_x, _y_final);
     _plan_initialized = false;
@@ -96,11 +98,13 @@ void DeltaPlanner::run()
     // Call the planner
     if(!_plan_initialized) {
         if(_ego_state.vx > 0) {
+            // _y_final = 0;
             _delta_plan = _planner.getEvasiveTrajectory(_ego_state, _y_final);  
         // cout<<"traj: "<<_delta_plan<<'\n'<<endl;
         }
 
-        if (_ego_state.vx > 15) {
+        // if (_ego_state.vx > 15) {
+        if (_collision_probability > 0.5) {
             _controller.setPlan(_delta_plan);
             _plan_initialized = true;
         }
@@ -151,6 +155,17 @@ void DeltaPlanner::laneMarkingCB(const delta_msgs::LaneMarkingArray::ConstPtr& m
 
 }
 
+void DeltaPlanner::collisionCB(const delta_msgs::CollisionDetection::ConstPtr& msg) 
+{
+    _collision_state.x = msg->state.x;
+    _collision_state.y = msg->state.y;
+    _collision_state.vx = msg->state.vx;
+    _collision_state.vy = msg->state.vy;
+    _collision_time = msg->time_to_impact.toSec();
+    _collision_probability = msg->probability;
+
+}
+
 void DeltaPlanner::publishDiagnostics() {
     diagnostic_msgs::DiagnosticArray msg;
     msg.header.stamp = ros::Time::now();
@@ -162,19 +177,32 @@ void DeltaPlanner::publishDiagnostics() {
 
 void DeltaPlanner::validateControls()
 {
+    cout<<"IN validation"<<endl;
     _controller.get_validation();
+}
+
+void mySigintHandler(int sig)
+{
+  // Do some custom action.
+  // For example, publish a stop message to some other nodes.
+  
+  // All the default sigint handler does is call shutdown()
+  std::cout<<"Shutdown";
 }
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "delta_planning_controls_node");
+    ros::init(argc, argv, "delta_planning_controls_node", ros::init_options::NoSigintHandler);
     ros::NodeHandle nh;
     ROS_INFO("delta_planning_controls node started.");
 
     DeltaPlanner planner_obj(std::string("planner"));
+    signal(SIGINT, mySigintHandler);
 
     ros::Subscriber ego_state_sub = nh.subscribe<delta_msgs::EgoStateEstimate>("/delta/prediction/ego_vehicle/state", 10, &DeltaPlanner::egoStateCB, &planner_obj);
     ros::Subscriber lane_markings_sub = nh.subscribe<delta_msgs::LaneMarkingArray>("/delta/perception/lane_detection/markings", 10, &DeltaPlanner::laneMarkingCB, &planner_obj);
+    ros::Subscriber collsion_detection_sub = nh.subscribe<delta_msgs::CollisionDetection>("/delta/prediction/collision", 10, &DeltaPlanner::collisionCB, &planner_obj);
+
 
     planner_obj.control_pub = nh.advertise<carla_ros_bridge_msgs::CarlaEgoVehicleControl>("/delta/planning_controls/ego_vehicle/controls", 1);
     planner_obj.traj_pub = nh.advertise<visualization_msgs::Marker>("/delta/planning_controls/ego_vehicle/evasive_trajectory", 1);
@@ -188,6 +216,7 @@ int main(int argc, char** argv)
         rate.sleep();
     }
     planner_obj.validateControls();
+    ros::shutdown();
 }
 
 // void DeltaPlanner::cfgCB(delta_planning_controls::PIDReconfigureConfig &config, uint32_t level)

@@ -18,7 +18,8 @@ private:
     int _findClosestWaypoint(VehicleState ego_state);
     double _findPathSlope(int idx);
     double _validator_counter;
-    vector<double> _control_validation;
+    int _validator_idx;
+    std::vector<double> _control_validation;
 
 public:
     PIDController();
@@ -26,7 +27,7 @@ public:
     PIDController(double kp, double kd, double ki, double steer_max, double steer_min, double k1, double k2, double dt, double throttle_max, double brake_min);
 
     void setPlan(Eigen::MatrixXd plan);
-    vector<double> get_validation();
+    std::vector<double> get_validation();
 
     VehicleControl runStep(VehicleState ego_state);
 };

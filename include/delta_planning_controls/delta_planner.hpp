@@ -9,6 +9,7 @@
 #include <delta_msgs/EgoStateEstimate.h>
 #include <delta_msgs/LaneMarkingArray.h>
 #include <delta_msgs/LaneMarking.h>
+#include <delta_msgs/CollisionDetection.h>
 #include <dynamic_reconfigure/server.h>
 #include <ros/ros.h>
 // #include <delta_planning_controls/PIDReconfigureConfig.h>
@@ -17,6 +18,7 @@
 #include <delta_planning_controls/pid_controller.hpp>
 #include <delta_planning_controls/quintic_polynomial_generation.hpp>
 #include <carla_ros_bridge_msgs/CarlaEgoVehicleControl.h>
+#include <signal.h>
 
 class DeltaPlanner {
 
@@ -46,6 +48,11 @@ private:
     double _y_final;
 
     VehicleState _ego_state;
+    
+    VehicleState _collision_state;
+    double _collision_time;
+    double _collision_probability;
+
     ros::Time _stamp;
 
     bool _plan_initialized;
@@ -67,7 +74,8 @@ public:
     // void cfgCB(delta_planning_controls::PIDReconfigureConfig &config, uint32_t level);
     void publishControl(VehicleControl control);
     void laneMarkingCB(const delta_msgs::LaneMarkingArray::ConstPtr& msg);
-    
+    void collisionCB(const delta_msgs::CollisionDetection::ConstPtr& msg);
+
     void visualizeEvasiveTrajectory(Eigen::MatrixXd trajectory);
     void publishDiagnostics();
     void validateControls();

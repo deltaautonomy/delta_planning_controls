@@ -19,6 +19,7 @@ PIDController::PIDController(double kp, double kd, double ki, double steer_max,
     longitudinal_controller = SpeedPID(kp, ki, kd, dt, throttle_max, brake_min);
     _valid_plan = false;
     _validator_counter = 0;
+    _validator_idx = -1;
 
 }
 
@@ -40,7 +41,16 @@ VehicleControl PIDController::runStep(VehicleState ego_state)
         double distance = ego_state.getDistance(_plan(idx, 0), _plan(idx, 1));
         if (_validator_counter <= _plan_size)
         {
-            _control_validation.push_back(distance);
+            if (idx != _validator_idx)
+            {
+                _control_validation.push_back(distance);
+                _validator_idx = idx;
+            }
+            if (idx==_validator_idx)
+            {
+                if (_control_validation[_control_validation.size()-1] > distance)
+                    _control_validation[_control_validation.size()-1] = distance;
+            }   
             _validator_counter++;
         }
         // cout<<"Distance: "<<distance<<endl;
@@ -65,7 +75,7 @@ VehicleControl PIDController::runStep(VehicleState ego_state)
 
 vector<double> PIDController::get_validation()
 {
-    cout<<"Error in Pose: "<<endl;
+    cout<<"Error in Pose: \n\n\n\n\n\n\n\n\n\n\n\n"<<endl;
     for (int i=0;i<_control_validation.size();i++)
         cout<<_control_validation[i]<<" ";
     return _control_validation;
@@ -91,13 +101,13 @@ double PIDController::_findPathSlope(int idx)
     double slope;
     if ((idx > 0) && (idx < _plan_size - 1))
         // If the idx corresponds to an internal point on the plan
-        slope = (_plan(idx + 1, 1) - _plan(idx - 1, 1)) / (_plan(idx + 1, 0) - _plan(idx - 1, 0));
+        slope = atan2(_plan(idx + 1, 1) - _plan(idx - 1, 1), _plan(idx + 1, 0) - _plan(idx - 1, 0));
     else if (idx > 0)
         // If the idx corresponds to the last point on the plan
-        slope = (_plan(idx, 1) - _plan(idx - 1, 1)) / (_plan(idx, 0) - _plan(idx - 1, 0));
+        slope = atan2(_plan(idx, 1) - _plan(idx - 1, 1) , _plan(idx, 0) - _plan(idx - 1, 0));
     else
         // If the idx corresponds to the first point on the plan
-        slope = (_plan(idx + 1, 1) - _plan(idx, 1)) / (_plan(idx + 1, 0) - _plan(idx, 0));
+        slope = atan2(_plan(idx + 1, 1) - _plan(idx, 1) , _plan(idx + 1, 0) - _plan(idx, 0));
 
     return slope;
 }
