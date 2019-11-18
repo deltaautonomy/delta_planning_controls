@@ -164,7 +164,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /delta/planning/evasive_trajectory
+      Marker Topic: /delta/planning_controls/evasive_trajectory
       Name: Marker
       Namespaces:
         evasive_trajectory: true

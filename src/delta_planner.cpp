@@ -1,12 +1,15 @@
+#include <iostream>
+#include <math.h>
+
+#include <tf/tf.h>
+#include <ros/ros.h>
+#include <ros/console.h>
+#include <geometry_msgs/Point.h>
+#include <visualization_msgs/Marker.h>
+
 #include <delta_planning_controls/delta_planner.hpp>
 // #include <carla_ros_bridge/CarlaVehicleControl.h>
 #include <carla_ros_bridge_msgs/CarlaEgoVehicleControl.h>
-#include <visualization_msgs/Marker.h>
-#include <geometry_msgs/Point.h>
-#include <tf/tf.h>
-#include <iostream>
-#include <ros/console.h>
-#include <math.h>
 
 DeltaPlanner::DeltaPlanner(std::string name)
 {
@@ -53,7 +56,7 @@ void DeltaPlanner::publishControl(VehicleControl control)
     control_pub.publish(msg);
 }
 
-void DeltaPlanner::visualizeEvasiveTrajectory(MatrixXd trajectory)
+void DeltaPlanner::visualizeEvasiveTrajectory(Eigen::MatrixXd trajectory)
 {   visualization_msgs::Marker marker;
     marker.header.frame_id = "map";
     marker.header.stamp = _stamp;
@@ -80,13 +83,12 @@ void DeltaPlanner::visualizeEvasiveTrajectory(MatrixXd trajectory)
 
 void DeltaPlanner::run()
 {   
-    // cout<<_plan_initialized<<endl;
+    _fps_logger.Lap();
+
+    // Call the planner
     if(!_plan_initialized) {
-        // call the planner
-        // cout<<"EGO STATE: "<<_ego_state.acc_x<<" "<<_ego_state.vx<<endl;
         if(_ego_state.vx > 0) {
             _delta_plan = _planner.getEvasiveTrajectory(_ego_state);  
-        // cout<<"traj: "<<_delta_plan<<'\n'<<endl;
         }
 
         if (_ego_state.vx > 15) {
@@ -94,10 +96,15 @@ void DeltaPlanner::run()
             _plan_initialized = true;
         }
     }
-    VehicleControl control = _controller.runStep(_ego_state);
-    visualizeEvasiveTrajectory(_delta_plan);
-    publishControl(control);
 
+    // Call the controller
+    VehicleControl control = _controller.runStep(_ego_state);
+    
+    _fps_logger.Tick();
+
+    visualizeEvasiveTrajectory(_delta_plan); 
+    publishControl(control);
+    publishDiagnostics();
 }
 
 void DeltaPlanner::egoStateCB(const delta_msgs::EgoStateEstimate::ConstPtr& msg)
@@ -123,6 +130,16 @@ void DeltaPlanner::egoStateCB(const delta_msgs::EgoStateEstimate::ConstPtr& msg)
     _ego_state.acc_x = (msg->accel.linear.x);
     _ego_state.acc_y = (msg->accel.linear.y);
 }
+
+void DeltaPlanner::publishDiagnostics() {
+    diagnostic_msgs::DiagnosticArray msg;
+    msg.header.stamp = ros::Time::now();
+    auto status = delta::utils::MakeDiagnosticsStatus("planner_controller",
+        "planning_controls", _fps_logger.GetFPS());
+    msg.status.push_back(status);
+    diag_pub.publish(msg);
+}
+
 // void DeltaPlanner::laneMarkingCB(const delta_msgs::LaneMarkingArray::ConstPtr& msg)
 // {
 //     vector <double> lane_intercepts;
@@ -132,27 +149,27 @@ void DeltaPlanner::egoStateCB(const delta_msgs::EgoStateEstimate::ConstPtr& msg)
 //     }
 // }
 
-
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "delta_planning_controls_node");
     ros::NodeHandle nh;
+    ROS_INFO("delta_planning_controls node started.");
 
     DeltaPlanner planner_obj(std::string("planner"));
 
     ros::Subscriber ego_state_sub = nh.subscribe<delta_msgs::EgoStateEstimate>("/delta/prediction/ego_vehicle/state", 10, &DeltaPlanner::egoStateCB, &planner_obj);
     // ros::Subscriber lane_markings_sub = nh.subscribe<delta_msgs::LaneMarkingArray>("/delta/perception/lane_detection/markings", 10, &DeltaPlanner::laneMarkingCB, &planner_obj);
 
-    planner_obj.control_pub = nh.advertise<carla_ros_bridge_msgs::CarlaEgoVehicleControl>("/delta/planning/controls", 1);
-    planner_obj.traj_pub = nh.advertise<visualization_msgs::Marker>("/delta/planning/evasive_trajectory", 1);
-    
+    planner_obj.control_pub = nh.advertise<carla_ros_bridge_msgs::CarlaEgoVehicleControl>("/delta/planning_controls/ego_vehicle/controls", 1);
+    planner_obj.traj_pub = nh.advertise<visualization_msgs::Marker>("/delta/planning_controls/ego_vehicle/evasive_trajectory", 1);
+    planner_obj.diag_pub = nh.advertise<diagnostic_msgs::DiagnosticArray>("/delta/planning_controls/ego_vehicle/diagnostics", 5);
 
-    ros::Rate r(10); // 10 hz
+    ros::Rate rate(10); // 10 hz
     while (ros::ok())
     {   
         planner_obj.run();
         ros::spinOnce();
-        r.sleep();
+        rate.sleep();
     }
 }
 
