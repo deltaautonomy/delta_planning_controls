@@ -18,6 +18,7 @@ PIDController::PIDController(double kp, double kd, double ki, double steer_max,
     lateral_controller = StanleyController(k1, k2, dt, steer_max, steer_min);
     longitudinal_controller = SpeedPID(kp, ki, kd, dt, throttle_max, brake_min);
     _valid_plan = false;
+    _validator_counter = 0;
 
 }
 
@@ -37,6 +38,11 @@ VehicleControl PIDController::runStep(VehicleState ego_state)
         // cout<<"Current path index"<<idx<<endl;
 
         double distance = ego_state.getDistance(_plan(idx, 0), _plan(idx, 1));
+        if (_validator_counter <= _plan_size)
+        {
+            _control_validation.push_back(distance);
+            _validator_counter++;
+        }
         // cout<<"Distance: "<<distance<<endl;
         double slope = _findPathSlope(idx);
         double desired_speed = sqrt(pow(_plan(idx, 2), 2) + pow(_plan(idx, 3), 2));
@@ -57,10 +63,13 @@ VehicleControl PIDController::runStep(VehicleState ego_state)
     return ctrl;
 }
 
-// void PIDController::validate_control(VehicleState ego_state)
-// {
-//     int 
-// }
+vector<double> PIDController::get_validation()
+{
+    cout<<"Error in Pose: "<<endl;
+    for (int i=0;i<_control_validation.size();i++)
+        cout<<_control_validation[i]<<" ";
+    return _control_validation;
+}
 
 int PIDController::_findClosestWaypoint(VehicleState ego_state)
 {
