@@ -70,6 +70,7 @@ public:
     
     void visualizeEvasiveTrajectory(Eigen::MatrixXd trajectory);
     void publishDiagnostics();
+    void validateControls();
 
     void run();
 

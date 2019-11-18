@@ -160,6 +160,11 @@ void DeltaPlanner::publishDiagnostics() {
     diag_pub.publish(msg);
 }
 
+void DeltaPlanner::validateControls()
+{
+    _controller.get_validation();
+}
+
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "delta_planning_controls_node");
@@ -182,6 +187,7 @@ int main(int argc, char** argv)
         ros::spinOnce();
         rate.sleep();
     }
+    planner_obj.validateControls();
 }
 
 // void DeltaPlanner::cfgCB(delta_planning_controls::PIDReconfigureConfig &config, uint32_t level)
