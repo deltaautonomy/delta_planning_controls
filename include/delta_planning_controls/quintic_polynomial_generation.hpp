@@ -1,9 +1,4 @@
-/*=================================================================
- *
- * Delta Vehicle Control.h
- * author: Prateek Parmeshwar
- *
- *=================================================================*/
+
 #ifndef QUINTIC_POLYNOMIAL_GENERATION_H
 #define QUINTIC_POLYNOMIAL_GENERATION_H
 
@@ -35,15 +30,15 @@ public:
     double getMaxPlanningTime(VehicleState _ego_state); // Getter for planning time
     double getFinalPoseX(VehicleState _ego_state); // Get final x position
     MatrixXd homogenousTransWorldEgo(VehicleState _ego_state); // Get homogenous transform of ego vehicle wrt world
-    MatrixXd getBoundaryValsWorldFrame(VehicleState _ego_state); // Get ploynomial boundary vals in world frame
+    MatrixXd getBoundaryValsWorldFrame(VehicleState _ego_state, double y_final); // Get ploynomial boundary vals in world frame
 
     void setCtrlFreq(double new_ctrl_freq); // Setter for control freq
 
     // Member function for getting coefficients of 5th order polynomial
-    MatrixXd getPolynomialCoefficients(VehicleState _ego_state);
+    MatrixXd getPolynomialCoefficients(VehicleState _ego_state, double y_final);
 
     // Member function to generate evasive trajectory
-    MatrixXd getEvasiveTrajectory(VehicleState _ego_state);
+    MatrixXd getEvasiveTrajectory(VehicleState _ego_state, double y_final);
 };
 
 #endif

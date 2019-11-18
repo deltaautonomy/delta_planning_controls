@@ -7,6 +7,7 @@
 #include <iostream>
 #include <ros/console.h>
 #include <math.h>
+#include <algorithm>
 
 DeltaPlanner::DeltaPlanner(std::string name)
 {
@@ -32,13 +33,14 @@ DeltaPlanner::DeltaPlanner(std::string name)
     _private_nh.param("/delta_planning_controls/Planner/max_decceleration_x", _min_acceleration_x, 6.0);
     _private_nh.param("/delta_planning_controls/Planner/max_acceleration_y", _max_acceleration_y, 2.0);
     _private_nh.param("/delta_planning_controls/Planner/max_decceleration_y", _min_acceleration_y, 3.0);
-    _private_nh.param("/delta_planning_controls/Planner/shoulder_distance", _shoulder_const, -5.0);
+    // _private_nh.param("/delta_planning_controls/Planner/shoulder_distance", _shoulder_const, -5.0);
 
     // cout<<_speed_kp<<"\n";
 
     _ego_state = VehicleState();
+    
 
-    _planner = QuinticPolynomialGeneration(_planner_freq, _max_acceleration_x, _min_acceleration_x, _shoulder_const);
+    _planner = QuinticPolynomialGeneration(_planner_freq, _max_acceleration_x, _min_acceleration_x, _y_final);
     _plan_initialized = false;
     _controller = PIDController(_speed_kp, _speed_kd, _speed_ki, _steer_max, _steer_min, _steer_k1, _steer_k2, _dt, _throttle_max, _brake_min);
 }
@@ -85,7 +87,7 @@ void DeltaPlanner::run()
         // call the planner
         // cout<<"EGO STATE: "<<_ego_state.acc_x<<" "<<_ego_state.vx<<endl;
         if(_ego_state.vx > 0) {
-            _delta_plan = _planner.getEvasiveTrajectory(_ego_state);  
+            _delta_plan = _planner.getEvasiveTrajectory(_ego_state, _y_final);  
         // cout<<"traj: "<<_delta_plan<<'\n'<<endl;
         }
 
@@ -123,14 +125,17 @@ void DeltaPlanner::egoStateCB(const delta_msgs::EgoStateEstimate::ConstPtr& msg)
     _ego_state.acc_x = (msg->accel.linear.x);
     _ego_state.acc_y = (msg->accel.linear.y);
 }
-// void DeltaPlanner::laneMarkingCB(const delta_msgs::LaneMarkingArray::ConstPtr& msg)
-// {
-//     vector <double> lane_intercepts;
-//     for (int i=0; i < sizeof(msg)/sizeof(msg[0]); i++) // how to iterate over Lane marking array
-//     {
-//         lane_intercepts.push_back(msg[i]->intercept);
-//     }
-// }
+void DeltaPlanner::laneMarkingCB(const delta_msgs::LaneMarkingArray::ConstPtr& msg)
+{
+    vector <double> lane_intercepts;
+    vector<delta_msgs::LaneMarking> lanes = msg->lanes;
+    for (auto lane : lanes) 
+        lane_intercepts.push_back(lane.intercept);
+    double max_intercept = *max_element(lane_intercepts.begin(),lane_intercepts.end());
+    _y_final = -max_intercept;
+    cout<<"Y final: "<<_y_final<<endl;
+
+}
 
 
 int main(int argc, char** argv)
@@ -141,7 +146,7 @@ int main(int argc, char** argv)
     DeltaPlanner planner_obj(std::string("planner"));
 
     ros::Subscriber ego_state_sub = nh.subscribe<delta_msgs::EgoStateEstimate>("/delta/prediction/ego_vehicle/state", 10, &DeltaPlanner::egoStateCB, &planner_obj);
-    // ros::Subscriber lane_markings_sub = nh.subscribe<delta_msgs::LaneMarkingArray>("/delta/perception/lane_detection/markings", 10, &DeltaPlanner::laneMarkingCB, &planner_obj);
+    ros::Subscriber lane_markings_sub = nh.subscribe<delta_msgs::LaneMarkingArray>("/delta/perception/lane_detection/markings", 10, &DeltaPlanner::laneMarkingCB, &planner_obj);
 
     planner_obj.control_pub = nh.advertise<carla_ros_bridge_msgs::CarlaEgoVehicleControl>("/delta/planning/controls", 1);
     planner_obj.traj_pub = nh.advertise<visualization_msgs::Marker>("/delta/planning/evasive_trajectory", 1);

@@ -30,12 +30,14 @@ void PIDController::setPlan(Eigen::MatrixXd plan)
 }
 
 VehicleControl PIDController::runStep(VehicleState ego_state)
-{   VehicleControl ctrl;
+{ 
+    VehicleControl ctrl;
     if ((_valid_plan == true) && (_plan_size > 3)) {
         int idx = _findClosestWaypoint(ego_state);
         // cout<<"Current path index"<<idx<<endl;
 
         double distance = ego_state.getDistance(_plan(idx, 0), _plan(idx, 1));
+        // cout<<"Distance: "<<distance<<endl;
         double slope = _findPathSlope(idx);
         double desired_speed = sqrt(pow(_plan(idx, 2), 2) + pow(_plan(idx, 3), 2));
         double ego_speed = ego_state.getVelocity();
@@ -43,17 +45,22 @@ VehicleControl PIDController::runStep(VehicleState ego_state)
         double ego_vx = ego_state.vx;
 
         // get controls
-        cout<<"Ego Orientation "<<ego_orientation<<"          Slope"<<slope<<endl<<endl;
+        // cout<<"Ego Orientation "<<ego_orientation<<"          Slope"<<slope<<endl<<endl;
         // cout<<"SPEED: "<<desired_speed<<" "<<ego_speed<<endl;
         std::pair<double, double> speed_control = longitudinal_controller.updateError(desired_speed, ego_speed);
         double steering_control = lateral_controller.updateError(slope - ego_orientation, distance, ego_vx);
         ctrl.setControls(steering_control, speed_control.first, speed_control.second);
-        cout<<"CONTROL: "<<speed_control.first<<" "<<speed_control.second<<" "<<steering_control<<endl;
+        // cout<<"CONTROL: "<<speed_control.first<<" "<<speed_control.second<<" "<<steering_control<<endl;
     } else {
         ctrl.setControls(0, 0, 0);
     }
     return ctrl;
 }
+
+// void PIDController::validate_control(VehicleState ego_state)
+// {
+//     int 
+// }
 
 int PIDController::_findClosestWaypoint(VehicleState ego_state)
 {

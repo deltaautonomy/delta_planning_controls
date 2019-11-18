@@ -1,9 +1,4 @@
-/*=================================================================
- *
- * Delta Vehicle Control.cpp
- * author: Prateek Parmeshwar
- *
- *=================================================================*/
+
 #include "delta_planning_controls/quintic_polynomial_generation.hpp"
 #include "delta_planning_controls/vehicle_state.hpp"
 #include <eigen3/Eigen/Dense>
@@ -61,12 +56,11 @@ MatrixXd QuinticPolynomialGeneration::homogenousTransWorldEgo(VehicleState _ego_
     return homo_trans;
 }
 
-MatrixXd QuinticPolynomialGeneration::getBoundaryValsWorldFrame(VehicleState _ego_state)
+MatrixXd QuinticPolynomialGeneration::getBoundaryValsWorldFrame(VehicleState _ego_state, double y_final)
 {
     MatrixXd boundary_vals(4,2);
     MatrixXd homo_trans = homogenousTransWorldEgo(_ego_state);   
-
-    Vector3d ego_pose_fin(getFinalPoseX(_ego_state), m_shoulder_const, 1); // pose in ego frame
+    Vector3d ego_pose_fin(getFinalPoseX(_ego_state), y_final, 1); // pose in ego frame
     Vector3d ego_vel(_ego_state.vx, _ego_state.vy, 0); // velocity in ego frame
     Vector3d ego_acc(_ego_state.acc_x, _ego_state.acc_y, 0); // acceleration in ego frame
 
@@ -84,13 +78,13 @@ MatrixXd QuinticPolynomialGeneration::getBoundaryValsWorldFrame(VehicleState _eg
 
 }
 // Member function for generating evasive trajectory
-MatrixXd QuinticPolynomialGeneration::getPolynomialCoefficients(VehicleState _ego_state)
+MatrixXd QuinticPolynomialGeneration::getPolynomialCoefficients(VehicleState _ego_state, double y_final)
 {
     // Boundary vals is [xi,yi,xf,yf,vxi,vyi,axi,ayi]
     // minimum jerk trajectory is a 5th order polynomial
     // y = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5
     // Given initial and final values in pos, vel and acc (Note final acc is 0 and final vel is 0) coeffs are:
-    MatrixXd boundary_vals = getBoundaryValsWorldFrame(_ego_state);
+    MatrixXd boundary_vals = getBoundaryValsWorldFrame(_ego_state,y_final);
     // Get vals in world frame
     // cout<<
     double xi = boundary_vals(0,0);
@@ -155,9 +149,9 @@ MatrixXd QuinticPolynomialGeneration::getPolynomialCoefficients(VehicleState _eg
     return coeffs;
 }
 
-MatrixXd QuinticPolynomialGeneration::getEvasiveTrajectory(VehicleState _ego_state)
+MatrixXd QuinticPolynomialGeneration::getEvasiveTrajectory(VehicleState _ego_state, double y_final)
 {
-    MatrixXd coeffs = getPolynomialCoefficients(_ego_state);
+    MatrixXd coeffs = getPolynomialCoefficients(_ego_state,y_final);
 
     double dt = 1 / m_ctrl_freq;
     int num_steps = (int)(getMaxPlanningTime(_ego_state) * m_ctrl_freq);

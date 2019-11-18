@@ -6,6 +6,7 @@
 #include <delta_planning_controls/vehicle_state.hpp>
 #include <delta_msgs/EgoStateEstimate.h>
 #include <delta_msgs/LaneMarkingArray.h>
+#include <delta_msgs/LaneMarking.h>
 #include <dynamic_reconfigure/server.h>
 #include <ros/ros.h>
 // #include <delta_planning_controls/PIDReconfigureConfig.h>
@@ -38,6 +39,7 @@ private:
     double _max_acceleration_y;
     double _min_acceleration_y;
     double _shoulder_const;
+    double _y_final;
 
     VehicleState _ego_state;
     ros::Time _stamp;
@@ -46,7 +48,6 @@ private:
 
     QuinticPolynomialGeneration _planner;
     PIDController _controller;
-
     // Planner
     Eigen::MatrixXd _delta_plan;
 
@@ -59,6 +60,8 @@ public:
     // void cfgCB(delta_planning_controls::PIDReconfigureConfig &config, uint32_t level);
     void publishControl(VehicleControl control);
     void visualizeEvasiveTrajectory(MatrixXd trajectory);
+    void laneMarkingCB(const delta_msgs::LaneMarkingArray::ConstPtr& msg);
+    
 
     void run();
 
