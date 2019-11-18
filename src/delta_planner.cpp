@@ -147,7 +147,7 @@ void DeltaPlanner::laneMarkingCB(const delta_msgs::LaneMarkingArray::ConstPtr& m
         lane_intercepts.push_back(lane.intercept);
     double max_intercept = *max_element(lane_intercepts.begin(),lane_intercepts.end());
     _y_final = -max_intercept;
-    cout<<"Y final: "<<_y_final<<endl;
+    // cout<<"Y final: "<<_y_final<<endl;
 
 }
 
