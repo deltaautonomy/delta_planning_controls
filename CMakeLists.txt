@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   dynamic_reconfigure
+  diagnostic_msgs
   visualization_msgs)
 
 ################################################
@@ -77,3 +78,6 @@ target_link_libraries(${PROJECT_NAME}_node
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
+
+add_executable(diagnostics_test_node test/diagnostics_test.cpp)
+target_link_libraries(diagnostics_test_node ${catkin_LIBRARIES})

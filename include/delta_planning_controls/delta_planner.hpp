@@ -1,18 +1,22 @@
 #ifndef _DELTA_PLANNER_H_
 #define _DELTA_PLANNER_H_
 
-// #include <carla_ros_bridge/CarlaVehicleControl.h>
-#include <carla_ros_bridge_msgs/CarlaEgoVehicleControl.h>
-#include <delta_planning_controls/vehicle_state.hpp>
+#include <ros/ros.h>
+#include <eigen3/Eigen/Dense>
+#include <dynamic_reconfigure/server.h>
+#include <diagnostic_msgs/DiagnosticArray.h>
+
 #include <delta_msgs/EgoStateEstimate.h>
 #include <delta_msgs/LaneMarkingArray.h>
 #include <delta_msgs/LaneMarking.h>
 #include <dynamic_reconfigure/server.h>
 #include <ros/ros.h>
 // #include <delta_planning_controls/PIDReconfigureConfig.h>
+#include <delta_planning_controls/utils.hpp>
+#include <delta_planning_controls/vehicle_state.hpp>
 #include <delta_planning_controls/pid_controller.hpp>
 #include <delta_planning_controls/quintic_polynomial_generation.hpp>
-#include <eigen3/Eigen/Dense>
+#include <carla_ros_bridge_msgs/CarlaEgoVehicleControl.h>
 
 class DeltaPlanner {
 
@@ -51,17 +55,21 @@ private:
     // Planner
     Eigen::MatrixXd _delta_plan;
 
+    delta::utils::FPSLogger _fps_logger = delta::utils::FPSLogger("Planner");
+
 public:
     ros::Publisher control_pub;
     ros::Publisher traj_pub;
+    ros::Publisher diag_pub;
 
     DeltaPlanner(std::string name);
 
     // void cfgCB(delta_planning_controls::PIDReconfigureConfig &config, uint32_t level);
     void publishControl(VehicleControl control);
-    void visualizeEvasiveTrajectory(MatrixXd trajectory);
     void laneMarkingCB(const delta_msgs::LaneMarkingArray::ConstPtr& msg);
     
+    void visualizeEvasiveTrajectory(Eigen::MatrixXd trajectory);
+    void publishDiagnostics();
 
     void run();
 
