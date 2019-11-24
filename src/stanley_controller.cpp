@@ -27,7 +27,7 @@ double StanleyController::updateError(double orientation_error, double cross_tra
 {
     double output = 0.0;
     if(longitudinal_velocity > 0.001)
-        output =  - _K1 * orientation_error + _K2 * tan( cross_track_error / longitudinal_velocity);
+        output =  - _K1 * orientation_error + _K2 * atan2( cross_track_error,longitudinal_velocity);
     else
         return output;
 

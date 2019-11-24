@@ -150,7 +150,7 @@ void DeltaPlanner::laneMarkingCB(const delta_msgs::LaneMarkingArray::ConstPtr& m
     for (auto lane : lanes) 
         lane_intercepts.push_back(lane.intercept);
     double max_intercept = *max_element(lane_intercepts.begin(),lane_intercepts.end());
-    _y_final = -max_intercept;
+    _y_final = 0.75*_y_final - 0.25*max_intercept;
     // cout<<"Y final: "<<_y_final<<endl;
 
 }
@@ -177,17 +177,16 @@ void DeltaPlanner::publishDiagnostics() {
 
 void DeltaPlanner::validateControls()
 {
-    cout<<"IN validation"<<endl;
+    // cout<<string(30,'')<<In Controls validation<<string(30,'')<<endl;
     _controller.get_validation();
 }
 
 void mySigintHandler(int sig)
-{
-  // Do some custom action.
-  // For example, publish a stop message to some other nodes.
-  
+{ 
   // All the default sigint handler does is call shutdown()
-  std::cout<<"Shutdown";
+  cout<<"\033[95m"<<string(30,'*')<<" Planning and Controls Shutdown "<<string(30,'*')<<"\033[0m"<<endl;
+//   cout << "\033[1;31mbold string(30,'*') HEEEEEE\033[0m\n";
+  ros::shutdown();
 }
 
 int main(int argc, char** argv)
@@ -216,7 +215,6 @@ int main(int argc, char** argv)
         rate.sleep();
     }
     planner_obj.validateControls();
-    ros::shutdown();
 }
 
 // void DeltaPlanner::cfgCB(delta_planning_controls::PIDReconfigureConfig &config, uint32_t level)

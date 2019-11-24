@@ -19,7 +19,7 @@ Controller:
 
 Planner:
   planner_frequency: 20
-  max_acceleration_x: 4.0
+  max_acceleration_x: 3.0
   max_decceleration_x: 5.5
   max_acceleration_y: 2.0
   max_decceleration_y: 3.0

@@ -75,9 +75,10 @@ VehicleControl PIDController::runStep(VehicleState ego_state)
 
 vector<double> PIDController::get_validation()
 {
-    cout<<"Error in Pose: \n\n\n\n\n\n\n\n\n\n\n\n"<<endl;
-    for (int i=0;i<_control_validation.size();i++)
-        cout<<_control_validation[i]<<" ";
+    float average = accumulate(_control_validation.begin(),_control_validation.end(), 0.0)/_control_validation.size(); 
+    cout<<"\033[1;31m*************** Error in Pose: "<<average<<" ***************\033[0m"<<endl;
+    // for (int i=0;i<_control_validation.size();i++)
+    //     cout<<_control_validation[i]<<" ";
     return _control_validation;
 }
 
