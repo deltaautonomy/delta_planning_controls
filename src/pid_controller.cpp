@@ -11,12 +11,12 @@ PIDController::PIDController()
     _valid_plan = false;
 }
 
-PIDController::PIDController(double kp, double kd, double ki, double steer_max,
+PIDController::PIDController(double kp_max, double kd_max, double ki_max, double kp_min, double kd_min, double ki_min, double steer_max,
     double steer_min, double k1, double k2, double dt, double throttle_max, double brake_min)
 {
     _plan_size = 0;
     lateral_controller = StanleyController(k1, k2, dt, steer_max, steer_min);
-    longitudinal_controller = SpeedPID(kp, ki, kd, dt, throttle_max, brake_min);
+    longitudinal_controller = SpeedPID(kp_max, ki_max, kd_max, kp_min, ki_min, kd_min, dt, throttle_max, brake_min);
     _valid_plan = false;
     _validator_counter = 0;
     _validator_idx = -1;
@@ -29,9 +29,11 @@ void PIDController::setPlan(Eigen::MatrixXd plan)
     _valid_plan = true;
     _plan_size = _plan.rows();
     _current_path_idx = 0;
+    // cout<<"HERE is the plan"<<_plan<<endl;
+    // cout<<'\n\n\n\n\n\n\n';
 }
 
-VehicleControl PIDController::runStep(VehicleState ego_state)
+VehicleControl PIDController::runStep(VehicleState ego_state, int _plan_type)
 { 
     VehicleControl ctrl;
     if ((_valid_plan == true) && (_plan_size > 3)) {
@@ -58,15 +60,30 @@ VehicleControl PIDController::runStep(VehicleState ego_state)
         double desired_speed = sqrt(pow(_plan(idx, 2), 2) + pow(_plan(idx, 3), 2));
         double ego_speed = ego_state.getVelocity();
         double ego_orientation = ego_state.yaw;
+        if (ego_state.yaw < 0)
+            ego_orientation += 2*M_PI; 
         double ego_vx = ego_state.vx;
 
         // get controls
-        // cout<<"Ego Orientation "<<ego_orientation<<"          Slope"<<slope<<endl<<endl;
-        // cout<<"SPEED: "<<desired_speed<<" "<<ego_speed<<endl;
-        std::pair<double, double> speed_control = longitudinal_controller.updateError(desired_speed, ego_speed);
-        double steering_control = lateral_controller.updateError(slope - ego_orientation, distance, ego_vx);
+        float orientation_error(0);
+        float orientation_error_dir = slope - ego_orientation;
+        if (abs(orientation_error_dir) > M_PI)
+            orientation_error_dir = -orientation_error_dir;
+        float orientation_error_mag = M_PI - abs(abs(slope - ego_orientation) - M_PI);
+        if (orientation_error_dir < 0)
+            orientation_error = -orientation_error_mag;
+        else 
+            orientation_error = orientation_error_mag;
+
+
+        // cout<<"Ego Orientation "<<ego_orientation<<"          Slope"<<slope<<"        "<<orientation_error<<endl;
+        // cout<<"Distance Error: "<<distance<<endl;
+        std::pair<double, double> speed_control = longitudinal_controller.updateError(desired_speed, ego_speed, _plan_type);
+        double steering_control = lateral_controller.updateError(orientation_error, distance, ego_vx);
         ctrl.setControls(steering_control, speed_control.first, speed_control.second);
         // cout<<"CONTROL: "<<speed_control.first<<" "<<speed_control.second<<" "<<steering_control<<endl;
+
+
     } else {
         ctrl.setControls(0, 0, 0);
     }
@@ -110,5 +127,5 @@ double PIDController::_findPathSlope(int idx)
         // If the idx corresponds to the first point on the plan
         slope = atan2(_plan(idx + 1, 1) - _plan(idx, 1) , _plan(idx + 1, 0) - _plan(idx, 0));
 
-    return slope;
+    return slope > 0 ? slope : (2*M_PI + slope);
 }

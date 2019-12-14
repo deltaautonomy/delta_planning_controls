@@ -12,9 +12,12 @@ private:
     double _min;
 
     // Tunable Constants
-    double _Kp;
-    double _Kd;
-    double _Ki;
+    double _Kp_min;
+    double _Kd_min;
+    double _Ki_min;
+    double _Kp_max;
+    double _Kd_max;
+    double _Ki_max;
 
     // Error
     double _last_error;
@@ -25,9 +28,9 @@ private:
 public:
     SpeedPID();
 
-    SpeedPID(double kp, double kd, double ki, double dt, double max, double min);
+    SpeedPID(double kp_max, double kd_max, double ki_max, double kp_min, double kd_min, double ki_min, double dt, double max, double min);
 
-    std::pair<double, double> updateError(double desired_speed, double current_speed);
+    std::pair<double, double> updateError(double desired_speed, double current_speed, int _plan_type);
 };
 
 #endif /* _SPEED_PID_H_ */

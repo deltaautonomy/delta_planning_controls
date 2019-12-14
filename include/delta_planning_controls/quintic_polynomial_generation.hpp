@@ -26,18 +26,21 @@ public:
 
     // Define member functions
     double getCtrlFreq(); // Getter for control freq
-    double getMaxPlanningTime(VehicleState _ego_state); // Getter for planning time
-    double getFinalPoseX(VehicleState _ego_state); // Get final x position
-    MatrixXd homogenousTransWorldEgo(VehicleState _ego_state); // Get homogenous transform of ego vehicle wrt world
-    MatrixXd getBoundaryValsWorldFrame(VehicleState _ego_state, double y_final); // Get ploynomial boundary vals in world frame
-
     void setCtrlFreq(double new_ctrl_freq); // Setter for control freq
+    double getMaxPlanningTime(VehicleState _ego_state); // Getter for planning time
+    double getFinalPoseX(VehicleState _ego_state, double planning_time); // Get final x position
+    MatrixXd homogenousTransWorldEgo(VehicleState _ego_state); // Get homogenous transform of ego vehicle wrt world
+    MatrixXd getBoundaryValsWorldFrame(VehicleState _ego_state, VehicleState final_state); // Get ploynomial boundary vals in world frame
+
 
     // Member function for getting coefficients of 5th order polynomial
-    MatrixXd getPolynomialCoefficients(VehicleState _ego_state, double y_final);
+    MatrixXd getPolynomialCoefficients(VehicleState _ego_state, VehicleState final_state, double planning_time);
 
     // Member function to generate evasive trajectory
-    MatrixXd getEvasiveTrajectory(VehicleState _ego_state, double y_final);
+    MatrixXd getEvasiveTrajectory(VehicleState _ego_state, VehicleState final_state, double planning_time);
+
+    // Member function to create different maneuvers
+    MatrixXd getManeuver(VehicleState _ego_state, double lane_val, int type_maneuver);
 };
 
 #endif

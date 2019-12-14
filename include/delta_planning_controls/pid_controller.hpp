@@ -24,12 +24,13 @@ private:
 public:
     PIDController();
 
-    PIDController(double kp, double kd, double ki, double steer_max, double steer_min, double k1, double k2, double dt, double throttle_max, double brake_min);
+    PIDController(double kp_max, double kd_max, double ki_max, double kp_min, double kd_min, double ki_min, double steer_max, double steer_min, 
+                        double k1, double k2, double dt, double throttle_max, double brake_min);
 
     void setPlan(Eigen::MatrixXd plan);
     std::vector<double> get_validation();
 
-    VehicleControl runStep(VehicleState ego_state);
+    VehicleControl runStep(VehicleState ego_state, int _plan_type);
 };
 
 #endif /* _PID_CONTROLLER_H_ */

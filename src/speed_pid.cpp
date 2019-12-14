@@ -7,9 +7,14 @@ using namespace std;
 
 SpeedPID::SpeedPID()
 {
-    _Kp = 0;
-    _Kd = 0;
-    _Ki = 0;
+    _Kp_max = 0;
+    _Kd_max = 0;
+    _Ki_max = 0;
+
+    _Kp_min = 0;
+    _Kd_min = 0;
+    _Ki_min = 0;
+
     _max = 1;
     _min = -1;
     _dt = 0.1;
@@ -17,7 +22,8 @@ SpeedPID::SpeedPID()
     _integral_error = 0;
 }
 
-SpeedPID::SpeedPID(double kp, double kd, double ki, double dt, double max, double min) : _Kp(kp), _Kd(kd), _Ki(ki), _dt(dt), _max(max), _min(min)
+SpeedPID::SpeedPID(double kp_max, double kd_max, double ki_max, double kp_min, double kd_min, double ki_min,
+                 double dt, double max, double min) : _Kp_max(kp_max), _Kd_max(kd_max), _Ki_max(ki_max), _Kp_min(kp_min), _Kd_min(kd_min), _Ki_min(ki_min), _dt(dt), _max(max), _min(min)
 {
     // @TODO: Handle max min random values
     _last_error = 0;
@@ -42,13 +48,21 @@ pair<double, double> SpeedPID::_getThrottleBrake(double control)
     return make_pair(throttle, brake);
 }
 
-pair<double, double> SpeedPID::updateError(double desired_speed, double current_speed)
+pair<double, double> SpeedPID::updateError(double desired_speed, double current_speed, int _plan_type)
 {
     double error = desired_speed - current_speed;
-    // cout<<"DESIRED SPEED: "<<desired_speed<<"      CURRENT SPEED: "<<current_speed<<endl;
     _integral_error += error * _dt;
 
-    double output = _Kp * error + _Ki * _integral_error + _Kd * (error - _last_error) / _dt;
+    double output;
+    if(_plan_type == 2)
+    {
+        output = _Kp_max * error + _Ki_max * _integral_error + _Kd_max * (error - _last_error) / _dt;
+    }
+    else
+    {
+        output = _Kp_min * error + _Ki_min * _integral_error + _Kd_min * (error - _last_error) / _dt;
+    }
+    // cout<<"Error in Speed: "<<error<<" Output: "<<output<<endl;
 
     _last_error = error;
 

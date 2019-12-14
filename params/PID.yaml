@@ -1,12 +1,16 @@
 Controller:
   dt: 0
 
-  speed_kp: 0.75 #0.75
-  speed_ki: 0.0
-  speed_kd: 0.001 #0.0005
+  speed_kp_max: 1.75 #0.75
+  speed_ki_max: 0.0
+  speed_kd_max: 0.001 #0.0005
+
+  speed_kp_min: 1.5 #0.75
+  speed_ki_min: 0.0
+  speed_kd_min: 0.001 #0.0005
 
   steer_k1: 0.75 #0.75
-  steer_k2: 0.1 #0.5
+  steer_k2: 0.5 #0.5
 
   steer_max: 1.0
   steer_min: -1.0
@@ -20,7 +24,7 @@ Controller:
 Planner:
   planner_frequency: 20
   max_acceleration_x: 3.0
-  max_decceleration_x: 5.5
+  max_decceleration_x: 4.0
   max_acceleration_y: 2.0
   max_decceleration_y: 3.0
   shoulder_distance: -3.0

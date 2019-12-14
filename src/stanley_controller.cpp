@@ -26,8 +26,11 @@ StanleyController::StanleyController(double k1, double k2, double dt, double max
 double StanleyController::updateError(double orientation_error, double cross_track_error, double longitudinal_velocity)
 {
     double output = 0.0;
-    if(longitudinal_velocity > 0.001)
+    if(longitudinal_velocity > 0.001) 
+    {
         output =  - _K1 * orientation_error + _K2 * atan2( cross_track_error,longitudinal_velocity);
+        // cout<<-orientation_error<<"    "<<atan2(cross_track_error, longitudinal_velocity)<<"\n";
+    }
     else
         return output;
 
